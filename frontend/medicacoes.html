@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="/js/ui.js"></script>
+<link rel="stylesheet" href="css/style.css">
+<title>Medicações Prescritas</title>
+</head>
+<body>
+<header id="topbar" data-icon="💊" data-title="Medicações prescritas" data-sub="Histórico de consultas"></header>
+<main class="max-w-5xl mx-auto p-4 mt-4">
+  <div class="flex flex-wrap items-center gap-3 mb-2">
+    <input id="busca" placeholder="🔎 Buscar paciente, medicação ou diagnóstico…" class="flex-1 min-w-[240px] !my-0">
+    <span id="total" class="px-4 py-2 rounded-full bg-brand-100 text-brand-700 font-bold text-sm"></span>
+  </div>
+  <div id="listaMedicacoes" class="grid md:grid-cols-2 gap-x-4"><div class="skel"></div><div class="skel"></div></div>
+</main>
+<script>
+let dados = [];
+function desenhar() {
+  const t = document.getElementById("busca").value.toLowerCase();
+  const f = dados.filter((c) => [c.paciente, c.medicacao, c.diagnostico].join(" ").toLowerCase().includes(t));
+  document.getElementById("total").textContent = f.length + " prescrição(ões)";
+  document.getElementById("listaMedicacoes").innerHTML = f.length ? f.map((c) => `
+    <div class="card"><div class="flex justify-between gap-2"><h3>${esc(c.paciente)}</h3>
+      <small class="text-slate-400 whitespace-nowrap">${c.createdAt ? new Date(c.createdAt).toLocaleString("pt-BR") : ""}</small></div>
+      <p><span class="inline-block px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs">💊 ${esc(c.medicacao || "—")}</span></p>
+      <p><b>Diagnóstico:</b> ${esc(c.diagnostico || "Não informado")}</p>
+      <p><b>Observações:</b> ${esc(c.obs || "Nenhuma")}</p></div>`).join("")
+    : '<p class="col-span-2 text-center text-slate-400 py-10">Nenhuma medicação prescrita.</p>';
+}
+async function carregar() {
+  try { dados = (await (await fetch("/medicacoes")).json()).reverse(); desenhar(); }
+  catch { document.getElementById("listaMedicacoes").innerHTML = '<p class="text-red-600">Erro ao carregar.</p>'; }
+}
+document.getElementById("busca").addEventListener("input", desenhar);
+carregar(); setInterval(carregar, 20000);
+</script>
+<script src="/js/admin-hotkey.js"></script>
+</body>
+</html>

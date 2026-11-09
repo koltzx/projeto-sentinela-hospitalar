@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="/js/ui.js"></script>
+<link rel="stylesheet" href="css/style.css">
+<title>Triagem</title>
+</head>
+<body>
+<header id="topbar" data-icon="🩺" data-title="Triagem hospitalar" data-sub="Classificação de risco" data-tv="1"></header>
+<main class="max-w-6xl mx-auto p-4 mt-4 grid lg:grid-cols-5 gap-6">
+  <section class="glass p-6 lg:col-span-2">
+    <div class="flex items-start justify-between gap-3">
+      <div><h3 class="text-lg font-extrabold">Fila do atendimento</h3>
+      <p class="text-sm text-slate-500">Aguardando triagem • atualiza sozinho</p></div>
+      <button class="btn-ghost !py-1.5 !px-3 text-sm" onclick="carregarPacientes()">🔄</button>
+    </div>
+    <div id="fila-pacientes" class="mt-4"><div class="skel"></div><div class="skel"></div></div>
+  </section>
+
+  <section class="glass p-7 lg:col-span-3">
+    <h3 class="text-xl font-extrabold">Formulário de triagem</h3>
+    <p class="text-sm text-slate-500 mb-3">A cor de risco é calculada pelo sintoma e pela temperatura.</p>
+    <label class="lbl">Paciente</label>
+    <input id="nome" placeholder="Nome do paciente">
+    <div class="grid sm:grid-cols-2 gap-x-4">
+      <div><label class="lbl">Sintoma</label>
+      <select id="sintoma">
+        <option value="">Selecione o sintoma</option>
+        <option value="dor_leve">Dor leve</option><option value="resfriado">Resfriado</option><option value="coriza">Coriza</option>
+        <option value="tosse">Tosse</option><option value="febre">Febre</option><option value="vomito">Vômito</option>
+        <option value="diarreia">Diarreia</option><option value="falta_ar_moderada">Falta de ar moderada</option>
+        <option value="falta_ar_grave">Falta de ar grave</option><option value="infarto">Suspeita de infarto</option>
+        <option value="avc">Suspeita de AVC</option><option value="convulsao">Convulsão</option><option value="hemorragia">Hemorragia</option>
+      </select></div>
+      <div><label class="lbl">Temperatura (°C)</label><input id="temp" type="number" step="0.1" placeholder="36.5"></div>
+    </div>
+    <label class="lbl">Alergias</label>
+    <input id="alergia" placeholder="Ex.: dipirona, penicilina">
+    <label class="lbl">Observações</label>
+    <textarea id="observacao" placeholder="Observações clínicas"></textarea>
+    <div id="resultado"></div>
+    <button onclick="salvar()" class="w-full py-3.5">💾 Salvar triagem</button>
+    <div class="flex gap-4 justify-center mt-4 text-xs font-semibold text-slate-500">
+      <span class="flex items-center gap-1.5"><i class="w-3 h-3 rounded-full bg-green-500"></i>Verde</span>
+      <span class="flex items-center gap-1.5"><i class="w-3 h-3 rounded-full bg-yellow-400"></i>Amarelo</span>
+      <span class="flex items-center gap-1.5"><i class="w-3 h-3 rounded-full bg-red-500"></i>Vermelho</span>
+    </div>
+  </section>
+</main>
+
+<script>
+
+function carregarPacientes() {
+  fetch("/pacientes")
+    .then(r => r.json())
+    .then(pacientes => {
+      const div = document.getElementById("fila-pacientes");
+
+      // Mostra apenas os com status "triagem"
+      const fila = pacientes.filter(p => p.status === "triagem");
+
+      if (fila.length === 0) {
+        div.innerHTML = "<p class='text-center text-slate-400 py-6'>Nenhum paciente aguardando.</p>";
+        return;
+      }
+
+      div.innerHTML = "";
+      fila.forEach(p => {
+        const item = document.createElement("div");
+        item.className = "fila-item";
+        item.innerHTML = `
+          <div>
+            <strong>${esc(p.nome)}</strong><br>
+            <small>CPF: ${esc(p.cpf || "—")} • ${esc(p.tipo || "—")}</small>
+          </div>
+          <button class="btn-tv" onclick="chamarNaTV(${esc(JSON.stringify(p.nome))})">📺 Chamar na TV</button>
+        `;
+        div.appendChild(item);
+      });
+    })
+    .catch(() => {
+      document.getElementById("fila-pacientes").innerHTML =
+        "<p class='text-red-600'>Erro ao carregar pacientes.</p>";
+    });
+}
+
+// Função criada para enviar o nome do paciente para a TV quando ele for chamado no guichê.
+function chamarNaTV(nome) {
+  fetch("/tv/chamar", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      localTipo: "GUICHÊ",
+      localNumero: "01",
+      paciente: nome
+    })
+  })
+  .then(r => r.json())
+  .then(() => {
+    alert("✅ " + nome + " foi chamado na TV para o Guichê 01!");
+  });
+}
+
+function classificarRisco(sintoma, temperatura) {
+  const vermelhos = ["infarto","avc","convulsao","hemorragia","falta_ar_grave"];
+  const amarelos = ["febre","vomito","diarreia","falta_ar_moderada"];
+  if (temperatura >= 39) return "vermelho";
+  if (vermelhos.includes(sintoma)) return "vermelho";
+  if (amarelos.includes(sintoma)) return "amarelo";
+  return "verde";
+}
+
+function salvar() {
+  const nome = document.getElementById("nome").value;
+  const sintoma = document.getElementById("sintoma").value;
+  const temperatura = Number(document.getElementById("temp").value);
+  const alergia = document.getElementById("alergia").value;
+  const observacao = document.getElementById("observacao").value;
+  const risco = classificarRisco(sintoma, temperatura);
+
+  fetch("/triagem", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nome, sintoma, temperatura, alergia, observacao, risco })
+  })
+  .then(r => r.json())
+  .then(data => {
+    const resultado = document.getElementById("resultado");
+    resultado.className = risco;
+    resultado.innerHTML = "Classificação: " + risco.toUpperCase();
+    alert("✅ Triagem salva com sucesso!");
+    ["nome","sintoma","temp","alergia","observacao"].forEach(i => document.getElementById(i).value = "");
+  });
+}
+
+// Carrega a fila ao abrir a página
+carregarPacientes();
+
+// Atualiza a lista automaticamente a cada 10 segundos
+setInterval(carregarPacientes, 10000);
+
+</script>
+
+<script src="/js/admin-hotkey.js"></script>
+</body>
+</html>

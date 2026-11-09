@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Portal do Paciente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="/js/ui.js"></script>
+<link rel="stylesheet" href="css/portal.css">
+<style>
+.hidden{display:none!important}
+@keyframes floatO{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,30px)}}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes ringp{0%,100%{box-shadow:0 0 0 0 #2563eb88}50%{box-shadow:0 0 0 12px #2563eb00}}
+@keyframes ecg{to{stroke-dashoffset:0}}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes conf{from{transform:translateY(-10vh) rotate(0);opacity:1}to{transform:translateY(105vh) rotate(720deg);opacity:.9}}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.shake{animation:shake .45s}
+
+/* ===== autenticação ===== */
+#auth{min-height:100vh;display:grid;grid-template-columns:1.05fr 1fr}
+.ah{position:relative;overflow:hidden;color:#fff;padding:48px;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(140deg,#0b1224,#1e3a8a 55%,#0891b2)}
+.orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.45;animation:floatO 14s ease-in-out infinite}
+.ah h1{font-size:42px;line-height:1.1;margin:0;letter-spacing:-.03em;font-weight:800}
+.ah h1 span{color:#67e8f9}
+.feat{display:flex;gap:14px;align-items:center;padding:14px 16px;border-radius:16px;background:#ffffff14;backdrop-filter:blur(8px);border:1px solid #ffffff22;margin-top:12px;animation:slideR .6s both}
+.feat .e{font-size:24px}.feat small{display:block;color:#bfdbfe}
+.ecg{stroke-dasharray:700;stroke-dashoffset:700;animation:ecg 2.8s linear infinite}
+.af{display:grid;place-items:center;padding:24px}
+.ac{width:100%;max-width:470px;padding:30px}
+.tabs2{position:relative;display:grid;grid-template-columns:1fr 1fr;padding:5px;border-radius:14px;background:#94a3b822;margin-bottom:22px}
+.tabs2 button{position:relative;z-index:1;border:0;background:none;padding:10px;font-weight:700;color:var(--mut);transition:color .3s}
+.tabs2 button.on{color:#fff}
+.tabs2 i{position:absolute;top:5px;bottom:5px;left:5px;width:calc(50% - 5px);border-radius:10px;background:linear-gradient(135deg,#2563eb,#06b6d4);transition:transform .35s cubic-bezier(.34,1.4,.64,1);box-shadow:0 8px 18px -8px #2563ebcc}
+.tabs2.up i{transform:translateX(100%)}
+.prog{height:6px;border-radius:9px;background:#94a3b833;overflow:hidden;margin-bottom:6px}
+.prog i{display:block;height:100%;width:33.3%;background:linear-gradient(90deg,#2563eb,#06b6d4);transition:width .45s cubic-bezier(.2,.8,.2,1)}
+.sp{display:none}.sp.on{display:block;animation:slideR .35s both}
+.pw{display:flex;gap:5px;margin:-4px 0 10px}.pw i{flex:1;height:5px;border-radius:5px;background:#94a3b844;transition:background .3s}
+.err{min-height:20px;font-size:13px;font-weight:600;color:var(--bad);margin:2px 0 8px}
+.eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);border:0;background:none;font-size:16px}
+.ck{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--mut);margin:8px 0}.ck input{width:auto;margin:3px 0 0}
+.lnk{background:none;border:0;color:var(--b1);font-weight:600;padding:0}
+.okv{position:fixed;inset:0;z-index:300;display:grid;place-items:center;background:#0b1224dd;backdrop-filter:blur(8px);text-align:center;color:#fff}
+.okv svg{width:110px;height:110px}.okv circle,.okv path{stroke-dasharray:300;stroke-dashoffset:300;animation:draw .8s .1s forwards}.okv path{animation-delay:.6s}
+.cf{position:fixed;top:0;width:10px;height:16px;z-index:310;animation:conf 2.6s linear forwards;border-radius:2px}
+
+/* ===== jornada ===== */
+.step{position:relative;display:flex;gap:16px;padding-bottom:30px;animation:slideR .45s both}.step:last-child{padding-bottom:0}
+.step:not(:last-child)::before{content:"";position:absolute;left:19px;top:42px;bottom:-2px;width:3px;border-radius:3px;background:#94a3b833;transform-origin:top}
+.step.ok:not(:last-child)::before{background:var(--ok);animation:grow .7s both}
+.dp{width:40px;height:40px;border-radius:50%;flex-shrink:0;z-index:1;display:grid;place-items:center;font-weight:800;background:#94a3b833;color:var(--mut)}
+.step.ok .dp{background:var(--ok);color:#fff}.step.atual .dp{background:var(--b1);color:#fff;animation:ringp 1.8s infinite}
+.step b{display:block}.step small{color:var(--mut)}.step.pendente{opacity:.55}
+.ticket{text-align:center;padding:26px;border-radius:22px;color:#fff;background:linear-gradient(135deg,#1d4ed8,#0891b2);position:relative;overflow:hidden}
+.ticket .n{font-size:64px;font-weight:900;letter-spacing:.04em;line-height:1}
+.chamada{padding:26px;border-radius:22px;text-align:center;color:#fff;margin-bottom:18px;background:linear-gradient(135deg,#16a34a,#15803d);animation:pop .5s both,ringp 1.6s infinite}
+.chamada b{font-size:30px;display:block;margin-top:6px}
+.bigq{font-size:46px;font-weight:900;line-height:1;background:linear-gradient(135deg,#2563eb,#06b6d4);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ===== agendar ===== */
+.tps{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.tp{border:2px solid var(--bd);border-radius:16px;padding:16px;background:var(--panel);color:var(--tx);text-align:center;transition:transform .2s,border-color .2s}
+.tp:hover{transform:translateY(-3px)}.tp.on{border-color:var(--b1);background:#2563eb14;transform:scale(1.04)}.tp .e{font-size:28px;display:block}
+.days{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 10px}
+.dy{flex:0 0 66px;padding:12px 4px;border-radius:16px;border:1.5px solid var(--bd);background:var(--panel);color:var(--tx);text-align:center;transition:transform .2s}
+.dy:hover:not(:disabled){transform:translateY(-3px)}.dy small{display:block;font-size:11px;color:var(--mut);text-transform:uppercase}.dy b{font-size:20px}
+.dy.on{background:linear-gradient(135deg,#2563eb,#06b6d4);color:#fff;border:0;transform:scale(1.07)}.dy.on small{color:#e0f2fe}.dy:disabled{opacity:.35;cursor:not-allowed}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:10px}
+.sl{padding:11px 0;border-radius:12px;border:1.5px solid var(--bd);background:var(--panel);color:var(--tx);font-weight:700;transition:transform .2s;animation:pop .3s both}
+.sl:hover:not(:disabled){transform:translateY(-2px);border-color:var(--b1)}.sl.on{background:var(--b1);color:#fff;border-color:var(--b1)}.sl:disabled{opacity:.3;text-decoration:line-through;cursor:not-allowed}
+.stl{display:flex;gap:6px;margin:0 0 14px}
+@media(max-width:900px){#auth{grid-template-columns:1fr}.ah{display:none}}
+</style>
+</head>
+<body>
+
+<!-- ===================== AUTENTICAÇÃO ===================== -->
+<div id="auth">
+  <section class="ah">
+    <div class="orb" style="width:380px;height:380px;background:#06b6d4;top:-120px;left:-100px"></div>
+    <div class="orb" style="width:340px;height:340px;background:#7c3aed;bottom:-120px;right:-80px;animation-delay:-7s"></div>
+    <div style="position:relative;display:flex;align-items:center;gap:12px;font-weight:800;font-size:20px"><div class="logo" style="background:linear-gradient(#0b1224,#0b1224) padding-box,conic-gradient(from var(--ang),#2563eb,#06b6d4,#7c3aed,#2563eb) border-box">🏥</div>Sistema Hospitalar</div>
+    <div style="position:relative">
+      <h1>Sua saúde,<br><span>sem filas e sem papelada.</span></h1>
+      <svg viewBox="0 0 400 50" style="margin:22px 0;width:100%;max-width:420px"><polyline class="ecg" fill="none" stroke="#67e8f9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="0,25 80,25 100,25 115,6 130,44 145,25 220,25 240,25 255,10 270,40 285,25 400,25"/></svg>
+      <div class="feat"><span class="e">📅</span><div><b>Agende consultas</b><small>Escolha o dia e o horário pelo celular</small></div></div>
+      <div class="feat" style="animation-delay:.12s"><span class="e">📍</span><div><b>Acompanhe sua visita</b><small>Veja sua posição na fila em tempo real</small></div></div>
+      <div class="feat" style="animation-delay:.24s"><span class="e">🧪</span><div><b>Exames e receitas</b><small>Resultados e prescrições sempre à mão</small></div></div>
+    </div>
+    <small style="position:relative;color:#93c5fd">Seus dados são protegidos conforme a LGPD.</small>
+  </section>
+
+  <section class="af"><div class="ac panel">
+    <div class="tabs2" id="tabs"><i></i><button class="on" data-m="in">Entrar</button><button data-m="up">Criar conta</button></div>
+
+    <form id="fIn" autocomplete="on">
+      <h2 style="margin:0 0 4px">Bem-vindo(a) de volta</h2><p style="margin:0 0 16px;color:var(--mut)">Entre com seu CPF ou e-mail.</p>
+      <label class="lb">CPF ou e-mail<input class="in" name="login" autocomplete="username" required></label>
+      <label class="lb">Senha<div style="position:relative"><input class="in" name="senha" type="password" autocomplete="current-password" required style="padding-right:44px"><button type="button" class="eye" data-eye>👁️</button></div></label>
+      <div class="err" id="eIn"></div>
+      <button class="btn" style="width:100%;padding:13px" id="bIn">Entrar</button>
+      <p style="text-align:center;font-size:13px;color:var(--mut);margin:16px 0 0">Ainda não tem conta? <button type="button" class="lnk" data-m="up">Crie agora</button></p>
+    </form>
+
+    <form id="fUp" class="hidden" novalidate>
+      <div class="row" style="margin-bottom:6px"><b id="stT">Dados pessoais</b><span class="sp" style="flex:1;display:block"></span><small id="stN" style="color:var(--mut)">Passo 1 de 3</small></div>
+      <div class="prog"><i id="pg"></i></div><div style="height:12px"></div>
+      <div class="sp on" data-s="1">
+        <label class="lb">Nome completo<input class="in" name="nome" autocomplete="name"></label>
+        <label class="lb">CPF<input class="in" name="cpf" inputmode="numeric" maxlength="14" placeholder="000.000.000-00"></label>
+        <label class="lb">Data de nascimento<input class="in" name="nascimento" type="date"></label>
+      </div>
+      <div class="sp" data-s="2">
+        <label class="lb">E-mail<input class="in" name="email" type="email" autocomplete="email"></label>
+        <label class="lb">Telefone / WhatsApp<input class="in" name="telefone" inputmode="tel" maxlength="15" placeholder="(00) 00000-0000"></label>
+        <label class="lb">Convênio<select class="in" name="convenio"><option>Particular</option><option>Unimed</option><option>Bradesco Saúde</option><option>SulAmérica</option><option>Amil</option><option>Hapvida</option><option>Outro</option></select></label>
+        <label class="lb" id="lCart" style="display:none">Nº da carteirinha<input class="in" name="carteirinha"></label>
+      </div>
+      <div class="sp" data-s="3">
+        <label class="lb">Crie uma senha<div style="position:relative"><input class="in" name="senha" type="password" autocomplete="new-password" style="padding-right:44px"><button type="button" class="eye" data-eye>👁️</button></div></label>
+        <div class="pw" id="pw"><i></i><i></i><i></i><i></i></div><small id="pwT" style="color:var(--mut)">Mínimo de 6 caracteres. Misture letras, números e símbolos.</small>
+        <label class="lb" style="margin-top:12px">Repita a senha<input class="in" name="senha2" type="password" autocomplete="new-password"></label>
+        <label class="ck"><input type="checkbox" name="consentimento"><span>Li e aceito os <b>termos de uso</b> e a <b>política de privacidade</b>. Autorizo o tratamento dos meus dados de saúde para o meu atendimento (LGPD).</span></label>
+      </div>
+      <div class="err" id="eUp"></div>
+      <div class="row"><button type="button" class="btn ghost" id="bVoltar" style="visibility:hidden">‹ Voltar</button><span style="flex:1"></span><button type="button" class="btn" id="bProx">Continuar ›</button></div>
+      <p style="text-align:center;font-size:13px;color:var(--mut);margin:16px 0 0">Já tem conta? <button type="button" class="lnk" data-m="in">Entrar</button></p>
+    </form>
+    <p style="text-align:center;margin:18px 0 0;font-size:12px"><a href="index.html" style="color:var(--mut)">← Sou funcionário</a></p>
+  </div></section>
+</div>
+
+<!-- ===================== PORTAL ===================== -->
+<div class="app hidden" id="app">
+  <aside>
+    <div class="brand"><div class="logo">🏥</div><div>Portal do Paciente<small>Sistema hospitalar</small></div></div>
+    <nav id="nav"><i class="pill" id="pill"></i></nav>
+    <div class="usr"><div class="av" id="av"></div><div><b id="uNome"></b><small>Paciente</small></div></div>
+  </aside>
+  <main>
+    <header class="hd">
+      <button class="ib" id="burger">☰</button><h1 id="titulo"></h1><span class="sp"></span><span id="clock"></span>
+      <div style="position:relative"><button class="ib" id="bell">🔔<span class="dot" id="dot" style="display:none"></span></button><div class="pop" id="pop" style="display:none"></div></div>
+      <button class="ib" id="tema">🌙</button><button class="ib" id="sair" title="Sair">⎋</button>
+    </header>
+    <div id="view"></div>
+  </main>
+</div>
+
+<script>
+(function () {
+const $ = (s, r = document) => r.querySelector(s);
+const API = "/paciente-api";
+let S = null; try { S = JSON.parse(sessionStorage.getItem("pac_sess") || "null"); } catch (_) {}
+let T = null, atual = "";
+const pad = (n) => String(n).padStart(2, "0");
+const isoLocal = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const hojeISO = () => isoLocal(new Date());
+const dBR = (v) => (v ? String(v).split("T")[0].split("-").reverse().join("/") : "—");
+const fmtDH = (iso) => new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+const mascCPF = (c) => String(c || "").replace(/(\d{3})\d{3}\d{3}(\d{2})/, "$1.***.***-$2");
+
+async function api(path, o = {}, semSessao) {
+  const r = await fetch(API + path, { method: o.method || "GET", headers: { "Content-Type": "application/json", "x-token": S ? S.token : "" }, body: o.body !== undefined ? JSON.stringify(o.body) : undefined });
+  if (r.status === 401 && !semSessao) { sair(); throw new Error("Sessão expirada. Entre novamente."); }
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.erro || "Erro na requisição");
+  return d;
+}
+async function ok(fn, msg) { try { const r = await fn(); if (msg) toast(msg, "ok"); return r === undefined ? true : r; } catch (e) { toast(e.message, "err"); return null; } }
+function modal(html) { const ov = document.createElement("div"); ov.className = "ov"; ov.innerHTML = `<div class="md">${html}</div>`; ov.onmousedown = (e) => { if (e.target === ov) ov.remove(); }; document.body.appendChild(ov); return ov; }
+function confirmar(titulo, texto, rot = "Confirmar") {
+  return new Promise((res) => { const ov = modal(`<h3>${esc(titulo)}</h3><p style="color:var(--mut)">${esc(texto)}</p><div class="mf"><button class="btn ghost" data-r="0">Voltar</button><button class="btn bad" data-r="1">${esc(rot)}</button></div>`);
+    ov.querySelectorAll("button").forEach((b) => (b.onclick = () => { ov.remove(); res(b.dataset.r === "1"); })); });
+}
+const skel = (n = 3) => Array.from({ length: n }, () => `<div class="skel"></div>`).join("");
+function countUp(root) { root.querySelectorAll("[data-n]").forEach((el) => { const fim = Number(el.dataset.n), t0 = performance.now(); const f = (t) => { const k = Math.min(1, (t - t0) / 900); el.textContent = Math.round(fim * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(f); }; requestAnimationFrame(f); }); }
+function imprimir(titulo, corpo) {
+  const w = window.open("", "_blank");
+  if (!w) return toast("Libere os pop-ups para imprimir", "warn");
+  w.document.write(`<html><head><title>${esc(titulo)}</title><style>body{font-family:Arial,sans-serif;padding:40px;max-width:720px;margin:auto;color:#111}h1{border-bottom:3px solid #2563eb;padding-bottom:10px}.bx{border:1px solid #ccc;border-radius:10px;padding:16px;margin:16px 0}small{color:#666}</style></head><body>${corpo}<p><small>Cópia informativa do registro do atendimento, gerada pelo Portal do Paciente em ${new Date().toLocaleString("pt-BR")}.</small></p><script>window.onload=function(){print()}<\/script></body></html>`);
+  w.document.close();
+}
+
+// ===================== AUTENTICAÇÃO =====================
+const cpfOk = (c) => { c = c.replace(/\D/g, ""); if (c.length !== 11 || /^(\d)\1+$/.test(c)) return false; for (let t = 9; t < 11; t++) { let s = 0; for (let i = 0; i < t; i++) s += +c[i] * (t + 1 - i); if (((s * 10) % 11) % 10 !== +c[t]) return false; } return true; };
+const mCPF = (v) => { const d = v.replace(/\D/g, "").slice(0, 11); return d.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2"); };
+const mTel = (v) => { const d = v.replace(/\D/g, "").slice(0, 11); return d.length > 10 ? d.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3") : d.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3").replace(/-$/, ""); };
+let modo = "in", passo = 1;
+const TIT = ["Dados pessoais", "Contato e convênio", "Segurança"];
+
+function modoAuth(m) {
+  modo = m;
+  $("#tabs").classList.toggle("up", m === "up");
+  $("#tabs").querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.m === m));
+  $("#fIn").classList.toggle("hidden", m !== "in"); $("#fUp").classList.toggle("hidden", m !== "up");
+}
+document.querySelectorAll("[data-m]").forEach((b) => (b.onclick = () => modoAuth(b.dataset.m)));
+document.querySelectorAll("[data-eye]").forEach((b) => (b.onclick = () => { const i = b.previousElementSibling; i.type = i.type === "password" ? "text" : "password"; }));
+$("#fUp [name=cpf]").oninput = (e) => (e.target.value = mCPF(e.target.value));
+$("#fUp [name=telefone]").oninput = (e) => (e.target.value = mTel(e.target.value));
+$("#fUp [name=convenio]").onchange = (e) => ($("#lCart").style.display = e.target.value === "Particular" ? "none" : "block");
+$("#fUp [name=senha]").oninput = (e) => {
+  const v = e.target.value; let sc = 0;
+  if (v.length >= 6) sc++; if (v.length >= 10) sc++; if (/[A-Z]/.test(v) && /[a-z]/.test(v)) sc++; if (/\d/.test(v) && /[^A-Za-z0-9]/.test(v)) sc++;
+  const cor = ["#94a3b844", "#dc2626", "#f59e0b", "#22c55e", "#16a34a"][v ? Math.max(1, sc) : 0];
+  document.querySelectorAll("#pw i").forEach((i, k) => (i.style.background = k < (v ? Math.max(1, sc) : 0) ? cor : ""));
+  $("#pwT").textContent = v ? ["", "Senha fraca", "Senha razoável", "Senha boa", "Senha forte 💪"][Math.max(1, sc)] : "Mínimo de 6 caracteres. Misture letras, números e símbolos.";
+};
+function erroForm(id, msg) { $(id).textContent = msg; const f = $(id).closest("form"); f.classList.remove("shake"); void f.offsetWidth; f.classList.add("shake"); return false; }
+
+function irPasso(n) {
+  passo = n;
+  document.querySelectorAll("#fUp .sp[data-s]").forEach((p) => p.classList.toggle("on", +p.dataset.s === n));
+  $("#pg").style.width = (n / 3) * 100 + "%"; $("#stT").textContent = TIT[n - 1]; $("#stN").textContent = `Passo ${n} de 3`;
+  $("#bVoltar").style.visibility = n === 1 ? "hidden" : "visible"; $("#bProx").textContent = n === 3 ? "Criar minha conta ✓" : "Continuar ›"; $("#eUp").textContent = "";
+}
+function valida(n) {
+  const f = $("#fUp").elements;
+  if (n === 1) { if (f.nome.value.trim().length < 3) return erroForm("#eUp", "Informe seu nome completo."); if (!cpfOk(f.cpf.value)) return erroForm("#eUp", "CPF inválido. Confira os números.");
+    if (f.nascimento.value && f.nascimento.value > hojeISO()) return erroForm("#eUp", "Data de nascimento inválida."); }
+  if (n === 2) { if (!/^\S+@\S+\.\S+$/.test(f.email.value.trim())) return erroForm("#eUp", "Informe um e-mail válido."); }
+  if (n === 3) { if (f.senha.value.length < 6) return erroForm("#eUp", "A senha precisa ter ao menos 6 caracteres."); if (f.senha.value !== f.senha2.value) return erroForm("#eUp", "As senhas não conferem.");
+    if (!f.consentimento.checked) return erroForm("#eUp", "É necessário aceitar os termos para continuar."); }
+  return true;
+}
+$("#bVoltar").onclick = () => irPasso(passo - 1);
+$("#bProx").onclick = async () => {
+  if (!valida(passo)) return;
+  if (passo < 3) return irPasso(passo + 1);
+  const f = $("#fUp").elements, b = $("#bProx"); b.disabled = true;
+  try {
+    const d = await api("/cadastro", { method: "POST", body: { nome: f.nome.value, cpf: f.cpf.value, nascimento: f.nascimento.value, email: f.email.value, telefone: f.telefone.value, convenio: f.convenio.value, carteirinha: f.carteirinha.value, senha: f.senha.value, consentimento: f.consentimento.checked } }, true);
+    sucessoConta(d);
+  } catch (e) { erroForm("#eUp", e.message); }
+  b.disabled = false;
+};
+$("#fIn").onsubmit = async (e) => {
+  e.preventDefault(); $("#eIn").textContent = ""; const b = $("#bIn"); b.disabled = true;
+  try { const d = await api("/login", { method: "POST", body: { login: e.target.elements.login.value, senha: e.target.elements.senha.value } }, true); entrar(d); }
+  catch (err) { erroForm("#eIn", err.message); }
+  b.disabled = false;
+};
+function sucessoConta(d) {
+  const ov = document.createElement("div"); ov.className = "okv";
+  ov.innerHTML = `<div><svg viewBox="0 0 100 100" fill="none" stroke="#22c55e" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><circle cx="50" cy="50" r="44"/><path d="M30 52l14 14 27-30"/></svg><h2 style="margin:16px 0 4px">Conta criada! 🎉</h2><p style="opacity:.8;margin:0">Bem-vindo(a), ${esc(d.conta.nome.split(" ")[0])}. Preparando seu portal…</p></div>`;
+  document.body.appendChild(ov);
+  const cores = ["#2563eb", "#06b6d4", "#7c3aed", "#f59e0b", "#22c55e", "#ec4899"];
+  for (let i = 0; i < 60; i++) { const c = document.createElement("i"); c.className = "cf"; c.style.cssText = `left:${Math.random() * 100}vw;background:${cores[i % 6]};animation-delay:${Math.random() * .8}s;animation-duration:${2 + Math.random() * 1.5}s`; document.body.appendChild(c); setTimeout(() => c.remove(), 4200); }
+  setTimeout(() => { ov.remove(); entrar(d); }, 2300);
+}
+function entrar(d) { S = d; sessionStorage.setItem("pac_sess", JSON.stringify(d)); location.hash = ""; iniciar(); }
+function sair() { sessionStorage.removeItem("pac_sess"); S = null; clearInterval(T); location.hash = ""; $("#app").classList.add("hidden"); $("#auth").classList.remove("hidden"); modoAuth("in"); }
+
+// ===================== INÍCIO =====================
+function checkin() {
+  const ov = modal(`<h3>📍 Cheguei ao hospital</h3><p style="color:var(--mut);margin-top:0">Faça seu check-in e entre na fila de triagem. Você receberá uma senha de atendimento.</p>
+    <label class="lb">O que você está sentindo? (opcional)<textarea class="in" id="qx" rows="3" maxlength="300" placeholder="Ex.: dor de cabeça há 2 dias, febre"></textarea></label>
+    <div class="mf"><button class="btn ghost" data-x>Cancelar</button><button class="btn ok" id="go">Fazer check-in</button></div>`);
+  $("[data-x]", ov).onclick = () => ov.remove();
+  $("#go", ov).onclick = async () => { const r = await ok(() => api("/checkin", { method: "POST", body: { queixa: $("#qx", ov).value } })); if (r) { ov.remove(); toast(r.jaTinha ? `Você já está na fila. Senha ${r.visita.senha}` : `Check-in feito! Sua senha: ${r.visita.senha}`, "ok"); location.hash = "jornada"; rota(); } };
+}
+async function vInicio(el) {
+  el.innerHTML = skel(4);
+  const [j, ag, ex, hi, av] = await Promise.all([api("/jornada"), api("/agenda"), api("/exames"), api("/historico"), fetch("/avisos-ativos").then((r) => r.json()).catch(() => [])]);
+  const hoje = hojeISO(), h = new Date().getHours();
+  const futuras = ag.filter((a) => (a.status === "agendado" || a.status === "confirmado") && a.data >= hoje).sort((a, b) => `${a.data}${a.hora}`.localeCompare(`${b.data}${b.hora}`));
+  const prox = futuras[0], temHoje = futuras.find((a) => a.data === hoje);
+  const kp = [["📅", futuras.length, "Consultas agendadas", "#7c3aed"], ["🧪", ex.filter((e) => e.status === "pronto").length, "Exames prontos", "#16a34a"], ["💊", hi.consultas.filter((c) => c.medicacao).length, "Receitas", "#06b6d4"], ["🩺", hi.consultas.length, "Atendimentos", "#2563eb"]];
+  const cor = { urgente: "#dc2626", importante: "#f59e0b", normal: "#2563eb" };
+  el.innerHTML = `
+    <div class="hero"><h2>${h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite"}, ${esc(S.conta.nome.split(" ")[0])} 👋</h2><p>${new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })} • como podemos cuidar de você hoje?</p></div>
+    ${j.visita ? `<div class="panel row" style="border-left:5px solid var(--b1)"><div><div class="lb">Visita em andamento</div><b style="font-size:20px">Senha ${esc(j.visita.senha)}</b><div style="color:var(--mut)">${esc((j.etapas.find((e) => e.estado === "atual") || { rot: "Atendimento concluído" }).rot)}</div></div><span class="sp"></span><button class="btn" onclick="location.hash='jornada'">Acompanhar →</button></div>`
+      : `<div class="panel row"><div><b style="font-size:18px">${temHoje ? `Você tem consulta hoje às ${esc(temHoje.hora)}` : "Está no hospital?"}</b><div style="color:var(--mut)">Faça o check-in pelo celular e vá direto para a fila.</div></div><span class="sp"></span><button class="btn ok" id="ci">📍 Fazer check-in</button></div>`}
+    <div class="grid g4" style="margin-bottom:18px">${kp.map((k, i) => `<div class="kpi" style="--c:${k[3]};animation-delay:${i * 60}ms"><div class="ico">${k[0]}</div><div class="n" data-n="${k[1]}">0</div><div class="l">${k[2]}</div></div>`).join("")}</div>
+    <div class="grid g2">
+      <div class="panel"><h3>📅 Próxima consulta</h3>${prox ? `<div class="appt" style="--c:#7c3aed"><div class="h">${esc(prox.hora)}</div><div><b>${dBR(prox.data)}</b><div style="color:var(--mut);font-size:13px">${esc([prox.tipo, prox.medico].join(" • "))}</div></div></div>` : `<div class="vazio">Nenhuma consulta marcada.<br><button class="btn" style="margin-top:12px" onclick="location.hash='agendar'">Agendar agora</button></div>`}</div>
+      <div class="panel"><h3>📢 Avisos do hospital</h3>${av.length ? av.map((a) => `<div class="av2" style="--c:${cor[a.prioridade] || cor.normal}"><b>${esc(a.titulo)}</b><div style="color:var(--mut);font-size:14px">${esc(a.mensagem || "")}</div></div>`).join("") : `<div class="vazio">Nenhum aviso no momento.</div>`}</div>
+    </div>`;
+  countUp(el); if ($("#ci", el)) $("#ci", el).onclick = checkin;
+}
+
+// ===================== JORNADA AO VIVO =====================
+let ultimaChamada = null;
+async function vJornada(el) {
+  const desenhar = async () => {
+    const j = await api("/jornada");
+    if (!j.visita) { el.innerHTML = `<div class="panel vazio" style="padding:50px"><div style="font-size:54px">📍</div><h3>Você não tem uma visita em andamento</h3><p>Ao chegar ao hospital, faça o check-in para entrar na fila.</p><button class="btn ok" id="ci">Fazer check-in</button></div>`; $("#ci", el).onclick = checkin; return; }
+    if (j.chamada && j.chamada.id !== ultimaChamada) { ultimaChamada = j.chamada.id; if (navigator.vibrate) navigator.vibrate([300, 150, 300]); toast("📣 Você foi chamado!", "ok"); }
+    const RC = { vermelho: "#dc2626", amarelo: "#f59e0b", verde: "#16a34a" };
+    el.innerHTML = `
+      ${j.chamada ? `<div class="chamada">📣 VOCÊ FOI CHAMADO!<b>${esc(j.chamada.localTipo)} ${esc(j.chamada.localNumero)}</b><small>às ${esc(j.chamada.hora)}</small></div>` : ""}
+      <div class="grid g2">
+        <div><div class="ticket"><div style="opacity:.85;font-weight:600">SUA SENHA</div><div class="n">${esc(j.visita.senha || "—")}</div><div style="opacity:.85;margin-top:8px">Check-in às ${new Date(j.visita.createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</div></div>
+          ${j.posicao.triagem ? `<div class="panel" style="margin-top:18px;text-align:center"><div class="lb">Fila da triagem</div><div class="bigq">${j.posicao.triagem}º</div><small style="color:var(--mut)">Aguarde ser chamado(a) no painel</small></div>` : ""}
+          ${j.posicao.medico ? `<div class="panel" style="margin-top:18px;text-align:center"><div class="lb">Fila do médico</div><div class="bigq">${j.posicao.medico}º</div><small style="color:var(--mut)">A ordem considera a classificação de risco</small></div>` : ""}
+          ${j.risco ? `<div class="panel" style="margin-top:18px"><span class="chip" style="--c:${RC[j.risco] || "#64748b"}">Classificação: ${esc(j.risco)}</span></div>` : ""}</div>
+        <div class="panel"><h3>Etapas do seu atendimento</h3><div>${j.etapas.map((e, i) => `<div class="step ${e.estado}" style="animation-delay:${i * 80}ms"><div class="dp">${e.estado === "ok" ? "✓" : i + 1}</div><div><b>${esc(e.rot)}</b><small>${esc(e.det)}</small></div></div>`).join("")}</div></div>
+      </div>
+      ${j.resumo ? `<div class="panel" style="border-left:5px solid var(--ok)"><h3>✅ Resumo do atendimento</h3><p><b>Diagnóstico:</b> ${esc(j.resumo.diagnostico || "—")}</p><p><b>Medicação:</b> ${esc(j.resumo.medicacao || "—")}</p><p><b>Orientações:</b> ${esc(j.resumo.obs || "—")}</p><button class="btn" onclick="location.hash='historico'">Ver receita e histórico</button></div>` : ""}
+      <p style="text-align:center;color:var(--mut);font-size:12px">Atualização automática a cada 5 segundos</p>`;
+  };
+  el.innerHTML = skel(2); await desenhar();
+  T = setInterval(() => desenhar().catch(() => {}), 5000);
+}
+
+// ===================== AGENDAR =====================
+async function vAgendar(el) {
+  const E = { tipo: "Consulta", esp: "Clínica geral", data: "", hora: "" };
+  const ESP = ["Clínica geral", "Cardiologia", "Pediatria", "Ortopedia", "Ginecologia", "Dermatologia", "Neurologia", "Oftalmologia"];
+  const dias = Array.from({ length: 21 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() + i); return d; });
+  let slots = [];
+  const desenhar = () => {
+    el.innerHTML = `
+      <div class="panel"><h3>1. O que você precisa?</h3><div class="tps">${[["Consulta", "🩺"], ["Retorno", "🔁"], ["Exame", "🧪"]].map((t) => `<button class="tp ${E.tipo === t[0] ? "on" : ""}" data-tp="${t[0]}"><span class="e">${t[1]}</span><b>${t[0]}</b></button>`).join("")}</div>
+        <label class="lb" style="margin-top:14px">Especialidade<select class="in" id="esp">${ESP.map((x) => `<option ${x === E.esp ? "selected" : ""}>${x}</option>`).join("")}</select></label></div>
+      <div class="panel"><h3>2. Escolha o dia</h3><div class="days">${dias.map((d) => { const iso = isoLocal(d), dom = d.getDay() === 0; return `<button class="dy ${E.data === iso ? "on" : ""}" data-d="${iso}" ${dom ? "disabled" : ""}><small>${d.toLocaleDateString("pt-BR", { weekday: "short" })}</small><b>${d.getDate()}</b><small>${d.toLocaleDateString("pt-BR", { month: "short" })}</small></button>`; }).join("")}</div></div>
+      ${E.data ? `<div class="panel"><h3>3. Escolha o horário <small style="color:var(--mut);font-weight:400">• ${dBR(E.data)}</small></h3><div class="slots">${slots.map((s, i) => `<button class="sl ${E.hora === s.hora ? "on" : ""}" data-h="${s.hora}" ${s.vagas ? "" : "disabled"} style="animation-delay:${i * 18}ms">${s.hora}</button>`).join("") || `<div class="vazio">Sem horários.</div>`}</div></div>` : ""}
+      ${E.hora ? `<div class="panel"><h3>4. Confirmar</h3><p style="margin-top:0"><b>${E.tipo}</b> de <b>${E.esp}</b><br>${dBR(E.data)} às <b>${E.hora}</b></p>
+        <label class="lb">Observações (opcional)<textarea class="in" id="ob" rows="2" maxlength="300"></textarea></label><button class="btn ok" id="conf" style="width:100%;padding:13px">Confirmar agendamento ✓</button></div>` : ""}`;
+    el.querySelectorAll("[data-tp]").forEach((b) => (b.onclick = () => { E.tipo = b.dataset.tp; desenhar(); }));
+    $("#esp", el).onchange = (e) => (E.esp = e.target.value);
+    el.querySelectorAll("[data-d]").forEach((b) => (b.onclick = async () => { E.data = b.dataset.d; E.hora = ""; slots = (await ok(() => api("/horarios?data=" + E.data))) || []; desenhar(); }));
+    el.querySelectorAll("[data-h]").forEach((b) => (b.onclick = () => { E.hora = b.dataset.h; desenhar(); setTimeout(() => $("#conf", el) && $("#conf", el).scrollIntoView({ behavior: "smooth", block: "center" }), 50); }));
+    if ($("#conf", el)) $("#conf", el).onclick = async () => { const r = await ok(() => api("/agenda", { method: "POST", body: { tipo: E.tipo, medico: E.esp, data: E.data, hora: E.hora, obs: $("#ob", el).value } }), "Agendamento realizado! ✅"); if (r) location.hash = "consultas"; };
+  };
+  desenhar();
+}
+
+// ===================== CONSULTAS =====================
+const AG = { agendado: ["#f59e0b", "Aguardando confirmação"], confirmado: ["#2563eb", "Confirmado"], realizado: ["#16a34a", "Realizado"], cancelado: ["#dc2626", "Cancelado"] };
+async function vConsultas(el) {
+  el.innerHTML = skel(); let aba = "prox", lista = [];
+  const carregar = async () => { lista = await api("/agenda"); desenhar(); };
+  const desenhar = () => {
+    const hoje = hojeISO();
+    const ativos = (a) => (a.status === "agendado" || a.status === "confirmado") && a.data >= hoje;
+    const itens = lista.filter((a) => (aba === "prox" ? ativos(a) : !ativos(a))).sort((a, b) => (aba === "prox" ? 1 : -1) * `${a.data}${a.hora}`.localeCompare(`${b.data}${b.hora}`));
+    el.innerHTML = `<div class="row" style="margin-bottom:16px"><button class="btn sm ${aba === "prox" ? "" : "ghost"}" data-a="prox">Próximas</button><button class="btn sm ${aba === "ant" ? "" : "ghost"}" data-a="ant">Anteriores</button><span class="sp"></span><button class="btn" onclick="location.hash='agendar'">＋ Agendar</button></div>
+      ${itens.length ? itens.map((a, i) => { const c = AG[a.status] || AG.agendado; return `<div class="appt" style="--c:${c[0]};animation-delay:${i * 50}ms"><div class="h">${esc(a.hora)}</div><div style="flex:1;min-width:0"><b>${dBR(a.data)}</b> • ${esc(a.tipo)}<div style="color:var(--mut);font-size:13px">${esc(a.medico || "")}</div></div><span class="chip" style="--c:${c[0]}">${c[1]}</span>${ativos(a) ? `<button class="btn sm bad" data-x="${a.id}">Cancelar</button>` : ""}</div>`; }).join("") : `<div class="panel vazio">Nenhuma consulta ${aba === "prox" ? "agendada" : "anterior"}.</div>`}`;
+    el.querySelectorAll("[data-a]").forEach((b) => (b.onclick = () => { aba = b.dataset.a; desenhar(); }));
+    el.querySelectorAll("[data-x]").forEach((b) => (b.onclick = async () => { if (await confirmar("Cancelar agendamento", "Deseja realmente cancelar? O horário ficará livre para outras pessoas.", "Cancelar consulta") && await ok(() => api("/agenda/" + b.dataset.x, { method: "DELETE" }), "Agendamento cancelado")) carregar(); }));
+  };
+  await carregar();
+}
+
+// ===================== HISTÓRICO E RECEITAS =====================
+async function vHistorico(el) {
+  el.innerHTML = skel();
+  const h = await api("/historico");
+  const ev = [...h.consultas.map((c) => ({ t: "c", d: c.createdAt, x: c })), ...h.triagens.map((t) => ({ t: "t", d: t.createdAt, x: t }))].sort((a, b) => String(b.d).localeCompare(String(a.d)));
+  const RC = { vermelho: "#dc2626", amarelo: "#f59e0b", verde: "#16a34a" };
+  el.innerHTML = ev.length ? `<div class="tl">${ev.map((e, i) => e.t === "c" ? `
+    <div class="ev" style="--c:#16a34a;animation-delay:${Math.min(i, 10) * 60}ms"><span class="pt">👨‍⚕️</span><div class="row"><b>Consulta médica</b><span class="sp"></span><small>${fmtDH(e.d)}</small></div>
+      <p style="margin:6px 0"><b>Diagnóstico:</b> ${esc(e.x.diagnostico || "—")}</p>${e.x.medicacao ? `<p style="margin:6px 0"><b>💊 Medicação:</b> ${esc(e.x.medicacao)}</p>` : ""}${e.x.obs ? `<p style="margin:6px 0;color:var(--mut)">${esc(e.x.obs)}</p>` : ""}
+      <button class="btn sm ghost" data-r="${e.x.id}">🖨️ Imprimir receita / atestado de comparecimento</button></div>` : `
+    <div class="ev" style="--c:${RC[e.x.risco] || "#64748b"};animation-delay:${Math.min(i, 10) * 60}ms"><span class="pt">🩺</span><div class="row"><b>Triagem</b><span class="chip" style="--c:${RC[e.x.risco] || "#64748b"}">${esc(e.x.risco || "—")}</span><span class="sp"></span><small>${fmtDH(e.d)}</small></div><small style="color:var(--mut)">${esc(e.x.sintoma || "")}</small></div>`).join("")}</div>`
+    : `<div class="panel vazio" style="padding:50px"><div style="font-size:54px">📄</div>Seu histórico aparecerá aqui após o primeiro atendimento.</div>`;
+  el.querySelectorAll("[data-r]").forEach((b) => (b.onclick = () => {
+    const c = h.consultas.find((x) => String(x.id) === b.dataset.r);
+    imprimir("Receita", `<h1>Registro do atendimento</h1><div class="bx"><b>Paciente:</b> ${esc(S.conta.nome)}<br><b>CPF:</b> ${esc(mascCPF(S.conta.cpf))}<br><b>Data:</b> ${fmtDH(c.createdAt)}</div>
+      <div class="bx"><b>Diagnóstico:</b> ${esc(c.diagnostico || "—")}</div><div class="bx"><b>Medicação prescrita:</b> ${esc(c.medicacao || "—")}<br><br><b>Orientações:</b> ${esc(c.obs || "—")}</div>`);
+  }));
+}
+
+// ===================== EXAMES =====================
+async function vExames(el) {
+  el.innerHTML = skel();
+  const ex = await api("/exames");
+  const ST = { solicitado: ["#f59e0b", "Solicitado", 33], coletado: ["#2563eb", "Em análise", 66], pronto: ["#16a34a", "Resultado disponível", 100] };
+  el.innerHTML = ex.length ? `<div class="grid g2">${ex.map((e, i) => { const s = ST[e.status] || ST.solicitado; return `
+    <div class="panel" style="animation-delay:${i * 60}ms;border-left:5px solid ${s[0]}"><div class="row"><b style="font-size:17px">🧪 ${esc(e.exame)}</b><span class="sp"></span><span class="chip" style="--c:${s[0]}">${s[1]}</span></div>
+      <div class="meter" style="margin:12px 0"><i style="width:${s[2]}%;background:${s[0]}"></i></div><small style="color:var(--mut)">Solicitado em ${fmtDH(e.createdAt)}${e.solicitante ? " por " + esc(e.solicitante) : ""}</small>
+      ${e.status === "pronto" ? `<div class="av2" style="--c:#16a34a;margin-top:12px"><b>Resultado</b><div>${esc(e.resultado || "Sem observações.")}</div></div><button class="btn sm ghost" data-p="${e.id}">🖨️ Imprimir</button>` : ""}</div>`; }).join("")}</div>`
+    : `<div class="panel vazio" style="padding:50px"><div style="font-size:54px">🧪</div>Nenhum exame solicitado até o momento.</div>`;
+  el.querySelectorAll("[data-p]").forEach((b) => (b.onclick = () => { const e = ex.find((x) => String(x.id) === b.dataset.p); imprimir("Exame", `<h1>Resultado de exame</h1><div class="bx"><b>Paciente:</b> ${esc(S.conta.nome)}<br><b>Exame:</b> ${esc(e.exame)}<br><b>Data:</b> ${fmtDH(e.createdAt)}</div><div class="bx"><b>Resultado:</b><br>${esc(e.resultado || "—")}</div>`); }));
+}
+
+// ===================== PERFIL =====================
+async function vPerfil(el) {
+  const c = await api("/eu"); S.conta = c; sessionStorage.setItem("pac_sess", JSON.stringify(S));
+  el.innerHTML = `<div class="grid g2">
+    <div class="panel"><h3>👤 Meus dados</h3><div class="av" style="width:64px;height:64px;font-size:24px;margin-bottom:12px">${esc(c.nome.slice(0, 2).toUpperCase())}</div><b style="font-size:18px">${esc(c.nome)}</b><div style="color:var(--mut);margin-bottom:14px">CPF ${esc(mascCPF(c.cpf))} • conta criada em ${dBR(c.createdAt)}</div>
+      <form id="fp"><label class="lb">E-mail<input class="in" name="email" type="email" value="${esc(c.email)}"></label><label class="lb">Telefone<input class="in" name="telefone" value="${esc(c.telefone || "")}"></label>
+        <label class="lb">Convênio<input class="in" name="convenio" value="${esc(c.convenio || "")}"></label><label class="lb">Carteirinha<input class="in" name="carteirinha" value="${esc(c.carteirinha || "")}"></label>
+        <label class="lb">Nascimento<input class="in" name="nascimento" type="date" value="${esc(c.nascimento || "")}"></label><button class="btn">Salvar alterações</button></form></div>
+    <div><div class="panel"><h3>🔒 Alterar senha</h3><form id="fs"><label class="lb">Senha atual<input class="in" name="senhaAtual" type="password" autocomplete="current-password"></label><label class="lb">Nova senha<input class="in" name="novaSenha" type="password" autocomplete="new-password"></label><button class="btn">Alterar senha</button></form></div>
+      <div class="panel"><h3>🛡️ Privacidade (LGPD)</h3><p style="color:var(--mut);margin-top:0;font-size:14px">Você pode baixar uma cópia dos seus dados ou encerrar a conta. O prontuário médico é mantido pelo hospital pelo prazo exigido em lei.</p>
+        <div class="row"><button class="btn ghost" id="exp">⬇ Baixar meus dados</button><button class="btn bad" id="enc">Encerrar conta</button></div></div></div></div>`;
+  $("#fp", el).onsubmit = async (e) => { e.preventDefault(); const d = {}; new FormData(e.target).forEach((v, k) => (d[k] = v)); if (await ok(() => api("/eu", { method: "PUT", body: d }), "Dados atualizados")) { S.conta = await api("/eu"); sessionStorage.setItem("pac_sess", JSON.stringify(S)); } };
+  $("#fs", el).onsubmit = async (e) => { e.preventDefault(); const d = {}; new FormData(e.target).forEach((v, k) => (d[k] = v)); if (await ok(() => api("/eu", { method: "PUT", body: d }), "Senha alterada")) e.target.reset(); };
+  $("#exp", el).onclick = () => ok(async () => { const r = await fetch(API + "/eu/exportar", { headers: { "x-token": S.token } }); if (!r.ok) throw new Error("Falha ao exportar"); const a = document.createElement("a"); a.href = URL.createObjectURL(await r.blob()); a.download = "meus-dados.json"; a.click(); }, "Download iniciado");
+  $("#enc", el).onclick = () => { const ov = modal(`<h3>Encerrar conta</h3><p style="color:var(--mut)">Você não poderá mais entrar. Confirme com sua senha.</p><input class="in" id="cs" type="password" placeholder="Sua senha"><div class="mf"><button class="btn ghost" data-x>Voltar</button><button class="btn bad" id="cc">Encerrar</button></div>`);
+    $("[data-x]", ov).onclick = () => ov.remove(); $("#cc", ov).onclick = async () => { if (await ok(() => api("/eu/encerrar", { method: "POST", body: { senha: $("#cs", ov).value } }), "Conta encerrada")) { ov.remove(); sair(); } }; };
+}
+
+// ===================== ROTEADOR =====================
+const MODS = [
+  { id: "inicio", ico: "🏠", nome: "Início", render: vInicio }, { id: "jornada", ico: "📍", nome: "Minha visita", render: vJornada },
+  { id: "agendar", ico: "➕", nome: "Agendar", render: vAgendar }, { id: "consultas", ico: "📅", nome: "Minhas consultas", render: vConsultas },
+  { id: "historico", ico: "📄", nome: "Histórico e receitas", render: vHistorico }, { id: "exames", ico: "🧪", nome: "Exames", render: vExames },
+  { id: "perfil", ico: "👤", nome: "Meu perfil", render: vPerfil }
+];
+function montarMenu() {
+  $("#nav").innerHTML = `<i class="pill" id="pill"></i>` + MODS.map((m, i) => `<button class="ni" data-id="${m.id}" style="animation-delay:${i * 40}ms"><span class="ic">${m.ico}</span><span class="tx">${m.nome}</span></button>`).join("");
+  $("#nav").querySelectorAll(".ni").forEach((b) => (b.onclick = () => { location.hash = b.dataset.id; $("#app").classList.remove("open"); }));
+}
+function pilula() { const b = $(`.ni[data-id="${atual}"]`), p = $("#pill"); if (b && p) { p.style.height = b.offsetHeight + "px"; p.style.transform = `translateY(${b.offsetTop}px)`; } document.querySelectorAll(".ni").forEach((x) => x.classList.toggle("on", x.dataset.id === atual)); }
+async function rota() {
+  clearInterval(T);
+  const m = MODS.find((x) => x.id === location.hash.slice(1)) || MODS[0];
+  atual = m.id; pilula(); $("#titulo").textContent = `${m.ico} ${m.nome}`;
+  $("#view").innerHTML = `<div class="view" id="vw"></div>`;
+  try { await m.render($("#vw")); } catch (e) { $("#vw").innerHTML = `<div class="panel vazio">❌ ${esc(e.message)}</div>`; }
+}
+function tema(t) { document.documentElement.dataset.t = t; $("#tema").textContent = t === "dark" ? "☀️" : "🌙"; try { localStorage.setItem("pac_tema", t); } catch (_) {} }
+document.addEventListener("click", (e) => { const b = e.target.closest(".btn"); if (!b) return; const r = b.getBoundingClientRect(), s = document.createElement("span"); s.className = "rip"; s.style.left = e.clientX - r.left + "px"; s.style.top = e.clientY - r.top + "px"; b.appendChild(s); setTimeout(() => s.remove(), 600); });
+
+let iniciado = false;
+async function iniciar() {
+  $("#auth").classList.add("hidden"); $("#app").classList.remove("hidden");
+  $("#av").textContent = S.conta.nome.slice(0, 2).toUpperCase(); $("#uNome").textContent = S.conta.nome.split(" ").slice(0, 2).join(" ");
+  montarMenu();
+  if (!iniciado) {
+    iniciado = true;
+    let t = "light"; try { t = localStorage.getItem("pac_tema") || "light"; } catch (_) {} tema(t);
+    $("#tema").onclick = () => tema(document.documentElement.dataset.t === "dark" ? "light" : "dark");
+    $("#sair").onclick = sair;
+    $("#burger").onclick = () => { if (innerWidth <= 860) $("#app").classList.toggle("open"); else { $("#app").classList.toggle("mini"); setTimeout(pilula, 380); } };
+    const clk = () => ($("#clock").textContent = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })); clk(); setInterval(clk, 30000);
+    addEventListener("hashchange", () => S && rota()); addEventListener("resize", pilula);
+    $("#bell").onclick = (e) => { e.stopPropagation(); const p = $("#pop"); p.style.display = p.style.display === "none" ? "block" : "none"; };
+    document.addEventListener("click", () => ($("#pop").style.display = "none"));
+  }
+  try {
+    const av = await fetch("/avisos-ativos").then((r) => r.json()), cor = { urgente: "#dc2626", importante: "#f59e0b", normal: "#2563eb" };
+    $("#dot").style.display = av.length ? "grid" : "none"; $("#dot").textContent = av.length;
+    $("#pop").innerHTML = `<b>📢 Avisos</b>` + (av.length ? av.map((a) => `<div class="av2" style="--c:${cor[a.prioridade] || cor.normal}"><b>${esc(a.titulo)}</b><div style="font-size:13px;color:var(--mut)">${esc(a.mensagem || "")}</div></div>`).join("") : `<div class="vazio">Sem avisos.</div>`);
+  } catch (_) {}
+  rota();
+}
+modoAuth("in");
+if (S && S.token) api("/eu").then((c) => { S.conta = c; iniciar(); }).catch(() => sair());
+})();
+</script>
+</body>
+</html>

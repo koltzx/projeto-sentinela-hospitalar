@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Portal • Sistema Hospitalar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="/js/ui.js"></script>
+<link rel="stylesheet" href="css/portal.css">
+</head>
+<body>
+<div class="app" id="app">
+  <aside>
+    <div class="brand"><div class="logo">🏥</div><div>Sentinela<small>Sistema hospitalar</small></div></div>
+    <nav id="nav"><i class="pill" id="pill"></i></nav>
+    <div class="usr"><div class="av" id="av"></div><div><b id="uNome"></b><small id="uPerfil"></small></div></div>
+  </aside>
+  <main>
+    <header class="hd">
+      <button class="ib" id="burger" title="Menu">☰</button>
+      <h1 id="titulo"></h1><span class="sp"></span>
+      <span id="clock"></span>
+      <div style="position:relative"><button class="ib" id="bell" title="Avisos">🔔<span class="dot" id="dot" style="display:none"></span></button><div class="pop" id="pop" style="display:none"></div></div>
+      <button class="ib" id="tema" title="Tema">🌙</button>
+      <button class="ib" id="sair" title="Sair">⎋</button>
+    </header>
+    <div id="view"></div>
+  </main>
+</div>
+
+<script>
+(function () {
+const U = JSON.parse(sessionStorage.getItem("sent_user") || "null");
+if (!U || !U.token) { location.href = "index.html"; return; }
+const $ = (s, r = document) => r.querySelector(s);
+const ROT = { admin: "Administrador", atendimento: "Recepção", triagem: "Triagem", medico: "Médico(a)", farmacia: "Farmácia" };
+let PERM = {}, T = null, atual = "";
+const pode = (c, w) => { const n = PERM[c]; return !!n && (!w || n === "rw"); };
+const hojeISO = () => new Date().toISOString().slice(0, 10);
+const dBR = (v) => (v ? String(v).split("T")[0].split("-").reverse().join("/") : "—");
+const fmtHora = (iso) => new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+
+function sairSessao() { sessionStorage.removeItem("sent_user"); location.href = "index.html"; }
+async function api(path, o = {}) {
+  const r = await fetch("/app-api" + path, { method: o.method || "GET", headers: { "Content-Type": "application/json", "x-token": U.token }, body: o.body !== undefined ? JSON.stringify(o.body) : undefined });
+  if (r.status === 401) { sairSessao(); throw new Error("Sessão expirada"); }
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.erro || "Erro na requisição");
+  return d;
+}
+async function ok(fn, msg) { try { const r = await fn(); if (msg) toast(msg, "ok"); return r === undefined ? true : r; } catch (e) { toast(e.message, "err"); return null; } }
+
+function modal(html) {
+  const ov = document.createElement("div"); ov.className = "ov"; ov.innerHTML = `<div class="md">${html}</div>`;
+  ov.onmousedown = (e) => { if (e.target === ov) ov.remove(); };
+  document.body.appendChild(ov); return ov;
+}
+function form(titulo, campos, v, salvar) {
+  const campo = (c) => {
+    const val = v[c.k] ?? c.d ?? "";
+    let i;
+    if (c.t === "select") i = `<select class="in" name="${c.k}">${c.o.map((o) => { const a = Array.isArray(o) ? o : [o, o]; return `<option value="${esc(a[0])}" ${String(val) === String(a[0]) ? "selected" : ""}>${esc(a[1])}</option>`; }).join("")}</select>`;
+    else if (c.t === "textarea") i = `<textarea class="in" name="${c.k}" rows="3">${esc(val)}</textarea>`;
+    else i = `<input class="in" name="${c.k}" type="${c.t || "text"}" ${c.step ? `step="${c.step}"` : ""} value="${esc(val)}">`;
+    return `<label class="lb">${esc(c.l)}${i}</label>`;
+  };
+  const ov = modal(`<h3>${esc(titulo)}</h3><form>${campos.map(campo).join("")}<div class="mf"><button type="button" class="btn ghost" data-x>Cancelar</button><button class="btn">Salvar</button></div></form>`);
+  $("[data-x]", ov).onclick = () => ov.remove();
+  $("form", ov).onsubmit = async (e) => {
+    e.preventDefault();
+    const d = {}; new FormData(e.target).forEach((x, k) => (d[k] = x));
+    if (await salvar(d)) ov.remove();
+  };
+  const f = $(".in", ov); if (f) f.focus();
+}
+const skel = (n = 3) => Array.from({ length: n }, () => `<div class="skel"></div>`).join("");
+function countUp(root) {
+  root.querySelectorAll("[data-n]").forEach((el) => {
+    const fim = Number(el.dataset.n), suf = el.dataset.s || "", t0 = performance.now();
+    const f = (t) => { const k = Math.min(1, (t - t0) / 900); el.textContent = Math.round(fim * (1 - Math.pow(1 - k, 3))) + suf; if (k < 1) requestAnimationFrame(f); };
+    requestAnimationFrame(f);
+  });
+}
+
+// ===================== INÍCIO =====================
+async function vInicio(el) {
+  el.innerHTML = skel(4);
+  const [r, avisos] = await Promise.all([api("/resumo"), fetch("/avisos-ativos").then((x) => x.json()).catch(() => [])]);
+  const h = new Date().getHours();
+  const kpis = [
+    [pode("triagens"), "🩺", r.filaTriagem, "Aguardando triagem", "#f59e0b"],
+    [pode("triagens"), "👨‍⚕️", r.filaMedico, "Aguardando médico", "#2563eb"],
+    [pode("triagens"), "🚨", r.vermelhos, "Casos vermelhos", "#dc2626"],
+    [pode("pacientes"), "🧾", r.pacientesHoje, "Cadastros hoje", "#06b6d4"],
+    [pode("consultas"), "📋", r.consultasHoje, "Consultas hoje", "#16a34a"],
+    [pode("agendamentos"), "📅", r.agendaHoje, "Agenda de hoje", "#7c3aed"],
+    [pode("leitos"), "🛏️", r.leitosLivres, `Leitos livres de ${r.leitosTotal}`, "#22c55e"],
+    [pode("almox_itens"), "📦", r.alertasEstoque, "Alertas de estoque", "#ea580c"]
+  ].filter((k) => k[0]);
+  const cor = { urgente: "#dc2626", importante: "#f59e0b", normal: "#2563eb" };
+  el.innerHTML = `
+    <div class="hero"><h2>${h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite"}, ${esc(U.usuario)} 👋</h2>
+      <p>${new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} • perfil ${esc(ROT[U.tipo] || U.tipo)}</p></div>
+    <div class="grid g4" style="margin-bottom:18px">${kpis.map((k, i) => `<div class="kpi" style="--c:${k[4]};animation-delay:${i * 60}ms"><div class="ico">${k[1]}</div><div class="n" data-n="${k[2]}">0</div><div class="l">${k[3]}</div></div>`).join("")}</div>
+    <div class="grid g2">
+      <div class="panel"><h3>⚡ Acesso rápido</h3><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+        ${MODS.filter((m) => m.id !== "inicio" && m.ok()).map((m) => `<button class="tile" data-go="${m.id}"><span class="e">${m.ico}</span><b>${m.nome}</b></button>`).join("")}</div></div>
+      <div class="panel"><h3>📢 Mural de avisos</h3>${avisos.length ? avisos.map((a) => `<div class="av2" style="--c:${cor[a.prioridade] || cor.normal}"><b>${esc(a.titulo)}</b><div style="color:var(--mut);font-size:14px">${esc(a.mensagem || "")}</div></div>`).join("") : `<div class="vazio">Nenhum aviso no momento.</div>`}</div>
+    </div>`;
+  countUp(el);
+  el.querySelectorAll("[data-go]").forEach((b) => (b.onclick = () => (location.hash = b.dataset.go)));
+}
+
+// ===================== AGENDA =====================
+const AG = { agendado: ["#f59e0b", "Agendado"], confirmado: ["#2563eb", "Confirmado"], realizado: ["#16a34a", "Realizado"], cancelado: ["#dc2626", "Cancelado"] };
+async function vAgenda(el) {
+  const w = pode("agendamentos", true);
+  let dia = hojeISO(), semana = 0, lista = [];
+  el.innerHTML = skel();
+  const campos = [
+    { k: "paciente", l: "Paciente" }, { k: "medico", l: "Médico / especialidade" },
+    { k: "data", l: "Data", t: "date" }, { k: "hora", l: "Horário", t: "time" },
+    { k: "tipo", l: "Tipo", t: "select", o: ["Consulta", "Retorno", "Exame", "Procedimento"] },
+    { k: "status", l: "Status", t: "select", o: Object.entries(AG).map(([k, v]) => [k, v[1]]) },
+    { k: "obs", l: "Observações", t: "textarea" }
+  ];
+  const carregar = async () => { lista = await api("/colecao/agendamentos"); desenhar(); };
+  const mudar = async (a, status) => { if (await ok(() => api(`/colecao/agendamentos/${a.id}`, { method: "PUT", body: { status } }), "Status atualizado")) carregar(); };
+  const desenhar = () => {
+    const base = new Date(); base.setDate(base.getDate() - ((base.getDay() + 6) % 7) + semana * 7);
+    const dias = Array.from({ length: 7 }, (_, i) => { const d = new Date(base); d.setDate(d.getDate() + i); return d; });
+    const iso = (d) => d.toISOString().slice(0, 10);
+    const doDia = lista.filter((a) => a.data === dia).sort((a, b) => (a.hora || "").localeCompare(b.hora || ""));
+    el.innerHTML = `
+      <div class="row" style="margin-bottom:14px"><h2 style="margin:0">${dBR(dia)}</h2><span class="sp"></span>
+        <button class="btn ghost sm" id="hoje">Hoje</button>${w ? `<button class="btn" id="novo">＋ Agendar</button>` : ""}</div>
+      <div class="week"><button class="btn ghost sm nv" id="ant">‹</button>
+        ${dias.map((d) => { const n = lista.filter((a) => a.data === iso(d) && a.status !== "cancelado").length; return `<button class="day ${iso(d) === dia ? "on" : ""}" data-d="${iso(d)}"><small>${d.toLocaleDateString("pt-BR", { weekday: "short" })}</small><b>${d.getDate()}</b>${n ? `<i>${n}</i>` : ""}</button>`; }).join("")}
+        <button class="btn ghost sm nv" id="prox">›</button></div>
+      ${doDia.length ? doDia.map((a, i) => { const c = AG[a.status] || AG.agendado; return `
+        <div class="appt" style="--c:${c[0]};animation-delay:${i * 50}ms"><div class="h">${esc(a.hora || "--:--")}</div>
+          <div style="flex:1;min-width:0"><b>${esc(a.paciente)}</b><div style="color:var(--mut);font-size:13px">${esc([a.tipo, a.medico, a.obs].filter(Boolean).join(" • "))}</div></div>
+          <span class="chip" style="--c:${c[0]}">${c[1]}</span>
+          ${w ? `<div class="row" style="gap:6px"><button class="btn sm ghost" data-a="confirmado" data-id="${a.id}" title="Confirmar">✔</button><button class="btn sm ok" data-a="realizado" data-id="${a.id}" title="Realizada">✅</button><button class="btn sm bad" data-a="cancelado" data-id="${a.id}" title="Cancelar">✖</button><button class="btn sm ghost" data-e="${a.id}">✏️</button></div>` : ""}</div>`; }).join("")
+        : `<div class="panel vazio">🗓️ Nenhum agendamento neste dia.</div>`}`;
+    el.querySelectorAll(".day").forEach((b) => (b.onclick = () => { dia = b.dataset.d; desenhar(); }));
+    $("#ant", el).onclick = () => { semana--; desenhar(); }; $("#prox", el).onclick = () => { semana++; desenhar(); };
+    $("#hoje", el).onclick = () => { dia = hojeISO(); semana = 0; desenhar(); };
+    if ($("#novo", el)) $("#novo", el).onclick = () => form("Novo agendamento", campos, { data: dia, status: "agendado" }, async (d) => !!(await ok(() => api("/colecao/agendamentos", { method: "POST", body: d }), "Agendado")) && (carregar(), true));
+    el.querySelectorAll("[data-a]").forEach((b) => (b.onclick = () => mudar(lista.find((x) => String(x.id) === b.dataset.id), b.dataset.a)));
+    el.querySelectorAll("[data-e]").forEach((b) => (b.onclick = () => { const a = lista.find((x) => String(x.id) === b.dataset.e); form("Editar agendamento", campos, a, async (d) => !!(await ok(() => api(`/colecao/agendamentos/${a.id}`, { method: "PUT", body: d }), "Atualizado")) && (carregar(), true)); }));
+  };
+  await carregar();
+}
+
+// ===================== PRONTUÁRIOS =====================
+const EVC = { cadastro: ["#06b6d4", "🧾"], triagem: ["#f59e0b", "🩺"], consulta: ["#16a34a", "👨‍⚕️"], agendamento: ["#7c3aed", "📅"] };
+function vProntuario(el) {
+  el.innerHTML = `<div class="panel"><h3>📂 Prontuário do paciente</h3>
+    <input class="in" id="q" placeholder="Digite o nome do paciente (mín. 2 letras)…" autofocus style="font-size:17px;padding:14px 16px">
+    <div style="color:var(--mut);font-size:13px">Linha do tempo com cadastro, triagens, consultas e agendamentos.</div></div><div id="res"></div>`;
+  let tm;
+  $("#q", el).oninput = (e) => {
+    clearTimeout(tm);
+    tm = setTimeout(async () => {
+      const q = e.target.value.trim();
+      if (q.length < 2) return ($("#res", el).innerHTML = "");
+      $("#res", el).innerHTML = skel(2);
+      const ev = await ok(() => api("/prontuario?nome=" + encodeURIComponent(q)));
+      if (!ev) return ($("#res", el).innerHTML = "");
+      $("#res", el).innerHTML = ev.length ? `<div class="tl">${ev.map((x, i) => { const c = EVC[x.tipo]; return `
+        <div class="ev" style="--c:${c[0]};animation-delay:${Math.min(i, 12) * 60}ms"><span class="pt">${c[1]}</span>
+          <div class="row"><b>${esc(x.titulo)}</b><span class="sp"></span><small>${x.data ? fmtHora(x.data) : ""}</small></div>
+          <div><span style="font-weight:600">${esc(x.paciente)}</span> <span style="color:var(--mut)">${esc(x.detalhe)}</span></div></div>`; }).join("")}</div>`
+        : `<div class="panel vazio">Nenhum registro encontrado para “${esc(q)}”.</div>`;
+    }, 350);
+  };
+}
+
+// ===================== LEITOS =====================
+async function vLeitos(el) {
+  const w = pode("leitos", true);
+  const ROTL = { livre: "Livre", ocupado: "Ocupado", limpeza: "Limpeza", manutencao: "Manutenção" };
+  el.innerHTML = skel();
+  const campos = [{ k: "numero", l: "Número" }, { k: "setor", l: "Setor", t: "select", o: ["Enfermaria", "UTI", "Pronto-socorro", "Isolamento", "Pediatria", "Maternidade", "Observação"] },
+    { k: "status", l: "Situação", t: "select", o: Object.entries(ROTL) }, { k: "paciente", l: "Paciente (se ocupado)" }];
+  const render = async () => {
+    const l = (await api("/colecao/leitos")).sort((a, b) => String(a.numero).localeCompare(String(b.numero), undefined, { numeric: true }));
+    const c = (s) => l.filter((x) => x.status === s).length, tx = l.length ? Math.round((c("ocupado") / l.length) * 100) : 0;
+    el.innerHTML = `
+      <div class="grid g4" style="margin-bottom:18px">
+        ${[["🛏️", l.length, "Leitos", "#2563eb", ""], ["✅", c("livre"), "Livres", "#16a34a", ""], ["🔴", c("ocupado"), "Ocupados", "#dc2626", ""], ["📊", tx, "Taxa de ocupação", "#7c3aed", "%"]]
+          .map((k, i) => `<div class="kpi" style="--c:${k[3]};animation-delay:${i * 60}ms"><div class="ico">${k[0]}</div><div class="n" data-n="${k[1]}" data-s="${k[4]}">0</div><div class="l">${k[2]}</div></div>`).join("")}</div>
+      <div class="panel"><div class="meter"><i id="mt" style="width:0;background:${tx > 85 ? "#dc2626" : tx > 60 ? "#f59e0b" : "#16a34a"}"></i></div></div>
+      ${w ? `<div class="row" style="margin-bottom:12px"><button class="btn" id="novo">＋ Novo leito</button></div>` : ""}
+      ${l.length ? `<div class="beds">${l.map((x, i) => `<button class="bed ${esc(x.status)}" data-id="${x.id}" style="animation-delay:${Math.min(i, 20) * 30}ms"><span class="st">${ROTL[x.status] || ""}</span><b>${esc(x.numero)}</b><small>${esc(x.setor)}</small><small>${x.paciente ? "👤 " + esc(x.paciente) : "&nbsp;"}</small></button>`).join("")}</div>` : `<div class="panel vazio">Nenhum leito cadastrado.</div>`}`;
+    countUp(el); setTimeout(() => { const m = $("#mt", el); if (m) m.style.width = tx + "%"; }, 60);
+    el.querySelectorAll(".bed").forEach((b) => (b.onclick = () => {
+      if (!w) return toast("Seu perfil só pode visualizar os leitos", "warn");
+      const x = l.find((y) => String(y.id) === b.dataset.id);
+      form(`Leito ${x.numero}`, campos, x, async (d) => { if (d.status !== "ocupado") d.paciente = ""; return !!(await ok(() => api(`/colecao/leitos/${x.id}`, { method: "PUT", body: d }), "Leito atualizado")) && (render(), true); });
+    }));
+    if ($("#novo", el)) $("#novo", el).onclick = () => form("Novo leito", campos, { status: "livre", setor: "Enfermaria" }, async (d) => !!(await ok(() => api("/colecao/leitos", { method: "POST", body: d }), "Leito criado")) && (render(), true));
+  };
+  await render();
+  T = setInterval(() => { if (!$(".ov")) render().catch(() => {}); }, 20000);
+}
+
+// ===================== ESTOQUE / FARMÁCIA =====================
+function sitItem(i) {
+  const h = hojeISO(), lim = new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10);
+  if (i.validade && i.validade < h) return ["#dc2626", "Vencido"];
+  if ((i.estoque || 0) <= 0) return ["#dc2626", "Sem estoque"];
+  if (i.minimo > 0 && i.estoque <= i.minimo) return ["#f59e0b", "Estoque baixo"];
+  if (i.validade && i.validade <= lim) return ["#f59e0b", "Vence em breve"];
+  return ["#16a34a", "OK"];
+}
+async function vEstoque(el) {
+  const w = pode("almox_itens", true);
+  let itens = [], termo = "";
+  el.innerHTML = skel();
+  const carregar = async () => { itens = await api("/colecao/almox_itens"); desenhar(); };
+  const mov = (it) => form(`Movimentar: ${it.nome}`, [
+    { k: "tipo", l: "Tipo", t: "select", o: [["entrada", "Entrada (recebimento)"], ["saida", "Saída (consumo/dispensação)"], ["ajuste", "Ajuste (saldo contado)"]] },
+    { k: "quantidade", l: `Quantidade (${it.unidade})`, t: "number", step: "any" }, { k: "motivo", l: "Motivo / destino / nota fiscal" }], { tipo: "saida" },
+    async (d) => { if (d.quantidade === "") { toast("Informe a quantidade", "warn"); return false; } return !!(await ok(() => api("/almox/movimentar", { method: "POST", body: { ...d, itemId: it.id } }), "Movimentação registrada")) && (carregar(), true); });
+  const desenhar = () => {
+    const f = itens.filter((i) => !termo || [i.nome, i.categoria, i.lote].join(" ").toLowerCase().includes(termo));
+    const alertas = itens.filter((i) => sitItem(i)[1] !== "OK").length;
+    el.innerHTML = `
+      <div class="row" style="margin-bottom:14px"><input class="in" id="b" placeholder="🔎 Buscar item, categoria ou lote…" value="${esc(termo)}" style="max-width:380px;margin:0"><span class="sp"></span>
+        <span class="chip" style="--c:${alertas ? "#dc2626" : "#16a34a"}">${alertas ? "⚠️ " + alertas + " com alerta" : "✅ Estoque em dia"}</span>
+        ${w ? `<button class="btn" id="novo">＋ Novo item</button>` : ""}</div>
+      <div class="panel tw" style="padding:8px">${f.length ? `<table><thead><tr><th>Item</th><th>Categoria</th><th>Saldo</th><th>Mínimo</th><th>Validade</th><th>Situação</th>${w ? "<th></th>" : ""}</tr></thead><tbody>
+        ${f.map((i) => { const s = sitItem(i); return `<tr><td><b>${esc(i.nome)}</b><br><small style="color:var(--mut)">${esc(i.localizacao || "")} ${i.lote ? "• lote " + esc(i.lote) : ""}</small></td><td>${esc(i.categoria || "—")}</td>
+          <td><b>${esc(i.estoque)}</b> ${esc(i.unidade)}</td><td>${esc(i.minimo)}</td><td>${dBR(i.validade)}</td><td><span class="chip" style="--c:${s[0]}">${s[1]}</span></td>
+          ${w ? `<td><button class="btn sm" data-m="${i.id}">🔁 Movimentar</button></td>` : ""}</tr>`; }).join("")}</tbody></table>` : `<div class="vazio">Nenhum item encontrado.</div>`}</div>`;
+    const b = $("#b", el); b.oninput = (e) => { termo = e.target.value.toLowerCase(); const p = e.target.selectionStart; desenhar(); const n = $("#b", el); n.focus(); n.setSelectionRange(p, p); };
+    el.querySelectorAll("[data-m]").forEach((x) => (x.onclick = () => mov(itens.find((i) => String(i.id) === x.dataset.m))));
+    if ($("#novo", el)) $("#novo", el).onclick = () => form("Novo item", [
+      { k: "nome", l: "Nome" }, { k: "categoria", l: "Categoria" }, { k: "unidade", l: "Unidade", t: "select", o: ["un", "cx", "pct", "frasco", "ampola", "comprimido", "ml", "L", "g", "kg"] },
+      { k: "estoque", l: "Estoque inicial", t: "number", step: "any", d: 0 }, { k: "minimo", l: "Estoque mínimo", t: "number", step: "any", d: 0 }, { k: "validade", l: "Validade", t: "date" }, { k: "lote", l: "Lote" }], {},
+      async (d) => !!(await ok(() => api("/colecao/almox_itens", { method: "POST", body: d }), "Item cadastrado")) && (carregar(), true));
+  };
+  await carregar();
+}
+
+// ===================== PLANTÃO / EQUIPE =====================
+async function vPlantao(el) {
+  el.innerHTML = skel();
+  const eq = await api("/colecao/equipe");
+  let turno = "Todos";
+  const tur = ["Todos", ...new Set(eq.map((e) => e.turno).filter(Boolean))];
+  const cores = ["#2563eb", "#7c3aed", "#06b6d4", "#16a34a", "#f59e0b", "#db2777"];
+  const desenhar = () => {
+    const f = eq.filter((e) => turno === "Todos" || e.turno === turno);
+    el.innerHTML = `<div class="row" style="margin-bottom:16px">${tur.map((t) => `<button class="btn sm ${t === turno ? "" : "ghost"}" data-t="${esc(t)}">${esc(t)}</button>`).join("")}</div>
+      ${f.length ? `<div class="grid g4">${f.map((e, i) => `<div class="team" style="animation-delay:${i * 50}ms"><div class="av" style="background:${cores[i % cores.length]};width:50px;height:50px">${esc((e.nome || "?").trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase())}</div>
+        <div style="min-width:0"><b>${esc(e.nome)}</b><div style="color:var(--mut);font-size:13px">${esc(e.cargo || "")} ${e.setor ? "• " + esc(e.setor) : ""}</div>
+        <div class="row" style="margin-top:6px;gap:6px">${e.turno ? `<span class="chip" style="--c:#7c3aed">${esc(e.turno)}</span>` : ""}${e.telefone ? `<a class="chip" style="--c:#16a34a;text-decoration:none" href="tel:${esc(e.telefone)}">📞 ${esc(e.telefone)}</a>` : ""}</div></div></div>`).join("")}</div>` : `<div class="panel vazio">Nenhum profissional cadastrado.</div>`}`;
+    el.querySelectorAll("[data-t]").forEach((b) => (b.onclick = () => { turno = b.dataset.t; desenhar(); }));
+  };
+  desenhar();
+}
+
+// ===================== EXAMES (equipe) =====================
+const EXS = { solicitado: ["#f59e0b", "Solicitado"], coletado: ["#2563eb", "Em análise"], pronto: ["#16a34a", "Pronto"] };
+async function vExames(el) {
+  const w = pode("exames", true);
+  let lista = [], f = "todos";
+  el.innerHTML = skel();
+  const carregar = async () => { lista = await api("/colecao/exames"); desenhar(); };
+  const novo = () => form("Solicitar exame", [
+    { k: "paciente", l: "Paciente (nome completo)" },
+    { k: "exame", l: "Exame", t: "select", o: ["Hemograma completo", "Glicemia", "Colesterol e triglicérides", "Urina tipo 1", "Raio-X", "Eletrocardiograma", "Ultrassonografia", "Tomografia", "Teste rápido (COVID/Influenza)"] },
+    { k: "obs", l: "Observações clínicas", t: "textarea" }], {},
+    async (d) => !!(await ok(() => api("/colecao/exames", { method: "POST", body: { ...d, solicitante: U.usuario } }), "Exame solicitado")) && (carregar(), true));
+  const resultado = (e) => form(`Resultado: ${e.exame}`, [
+    { k: "status", l: "Situação", t: "select", o: Object.entries(EXS).map(([k, v]) => [k, v[1]]) },
+    { k: "resultado", l: "Resultado / laudo", t: "textarea" }], e,
+    async (d) => !!(await ok(() => api(`/colecao/exames/${e.id}`, { method: "PUT", body: d }), "Exame atualizado")) && (carregar(), true));
+  const desenhar = () => {
+    const itens = lista.filter((e) => f === "todos" || e.status === f);
+    el.innerHTML = `<div class="row" style="margin-bottom:16px">${["todos", ...Object.keys(EXS)].map((s) => `<button class="btn sm ${f === s ? "" : "ghost"}" data-f="${s}">${s === "todos" ? "Todos" : EXS[s][1]} (${s === "todos" ? lista.length : lista.filter((e) => e.status === s).length})</button>`).join("")}<span class="sp"></span>${w ? `<button class="btn" id="novo">＋ Solicitar exame</button>` : ""}</div>
+      ${itens.length ? itens.map((e, i) => { const c = EXS[e.status] || EXS.solicitado; return `<div class="appt" style="--c:${c[0]};animation-delay:${Math.min(i, 12) * 40}ms"><div style="flex:1;min-width:0"><b>🧪 ${esc(e.exame)}</b> — ${esc(e.paciente)}<div style="color:var(--mut);font-size:13px">${esc([e.solicitante && "por " + e.solicitante, e.contaId ? "paciente com conta no portal ✓" : "", e.obs].filter(Boolean).join(" • "))}</div>${e.resultado ? `<div style="font-size:13px;margin-top:4px">📝 ${esc(e.resultado)}</div>` : ""}</div><span class="chip" style="--c:${c[0]}">${c[1]}</span>${w ? `<button class="btn sm" data-r="${e.id}">Lançar resultado</button>` : ""}</div>`; }).join("") : `<div class="panel vazio">Nenhum exame nesta lista.</div>`}`;
+    el.querySelectorAll("[data-f]").forEach((b) => (b.onclick = () => { f = b.dataset.f; desenhar(); }));
+    if ($("#novo", el)) $("#novo", el).onclick = novo;
+    el.querySelectorAll("[data-r]").forEach((b) => (b.onclick = () => resultado(lista.find((x) => String(x.id) === b.dataset.r))));
+  };
+  await carregar();
+}
+
+// ===================== MÓDULOS / ROTEADOR =====================
+const tipos = (...t) => () => t.includes(U.tipo);
+const MODS = [
+  { id: "inicio", ico: "🏠", nome: "Início", ok: () => true, render: vInicio },
+  { id: "recepcao", ico: "🧾", nome: "Recepção", ok: tipos("atendimento", "admin"), frame: "atendimento.html" },
+  { id: "triagem", ico: "🩺", nome: "Triagem", ok: tipos("triagem", "admin"), frame: "triagem.html" },
+  { id: "consultorio", ico: "👨‍⚕️", nome: "Consultório", ok: tipos("medico", "admin"), frame: "medico.html" },
+  { id: "agenda", ico: "📅", nome: "Agenda", ok: () => pode("agendamentos"), render: vAgenda },
+  { id: "prontuario", ico: "📂", nome: "Prontuários", ok: tipos("medico", "triagem", "atendimento", "admin"), render: vProntuario },
+  { id: "leitos", ico: "🛏️", nome: "Leitos", ok: () => pode("leitos"), render: vLeitos },
+  { id: "exames", ico: "🧪", nome: "Exames", ok: () => pode("exames"), render: vExames },
+  { id: "estoque", ico: "📦", nome: "Farmácia / Estoque", ok: () => pode("almox_itens"), render: vEstoque },
+  { id: "prescricoes", ico: "💊", nome: "Prescrições", ok: tipos("medico", "admin"), frame: "medicacoes.html" },
+  { id: "plantao", ico: "🧑‍⚕️", nome: "Plantão / Equipe", ok: () => pode("equipe"), render: vPlantao }
+];
+const LINKS = [
+  { ico: "📺", nome: "Painel da TV", href: "tv.html", ok: () => true },
+  { ico: "🛡️", nome: "Painel Admin", href: "admin.html", ok: tipos("admin") }
+];
+
+function montarMenu() {
+  const nav = $("#nav"), vis = MODS.filter((m) => m.ok());
+  nav.innerHTML = `<i class="pill" id="pill"></i>` +
+    vis.map((m, i) => `<button class="ni" data-id="${m.id}" style="animation-delay:${i * 40}ms"><span class="ic">${m.ico}</span><span class="tx">${m.nome}</span></button>`).join("") +
+    `<div class="sep"></div>` + LINKS.filter((l) => l.ok()).map((l) => `<a class="ni" href="${l.href}" target="_blank" style="text-decoration:none"><span class="ic">${l.ico}</span><span class="tx">${l.nome}</span></a>`).join("");
+  nav.querySelectorAll("button.ni").forEach((b) => (b.onclick = () => { location.hash = b.dataset.id; $("#app").classList.remove("open"); }));
+}
+function pilula() {
+  const b = $(`.ni[data-id="${atual}"]`), p = $("#pill");
+  if (b && p) { p.style.height = b.offsetHeight + "px"; p.style.transform = `translateY(${b.offsetTop}px)`; }
+  document.querySelectorAll(".ni").forEach((x) => x.classList.toggle("on", x.dataset.id === atual));
+}
+async function rota() {
+  clearInterval(T);
+  const vis = MODS.filter((m) => m.ok());
+  const id = location.hash.slice(1);
+  const m = vis.find((x) => x.id === id) || vis[0];
+  atual = m.id; pilula();
+  $("#titulo").textContent = `${m.ico} ${m.nome}`;
+  const v = $("#view");
+  v.innerHTML = m.frame ? `<iframe class="frame" src="${m.frame}"></iframe>` : `<div class="view" id="vw"></div>`;
+  if (m.render) { try { await m.render($("#vw")); } catch (e) { $("#vw").innerHTML = `<div class="panel vazio">❌ ${esc(e.message)}</div>`; } }
+}
+
+// ===================== INICIALIZAÇÃO =====================
+function tema(t) { document.documentElement.dataset.t = t; $("#tema").textContent = t === "dark" ? "☀️" : "🌙"; try { localStorage.setItem("sent_tema", t); } catch (_) {} }
+document.addEventListener("click", (e) => {
+  const b = e.target.closest(".btn"); if (!b) return;
+  const r = b.getBoundingClientRect(), s = document.createElement("span"); s.className = "rip";
+  s.style.left = e.clientX - r.left + "px"; s.style.top = e.clientY - r.top + "px"; b.appendChild(s); setTimeout(() => s.remove(), 600);
+});
+(async function init() {
+  $("#av").textContent = U.usuario.slice(0, 2).toUpperCase(); $("#uNome").textContent = U.usuario; $("#uPerfil").textContent = ROT[U.tipo] || U.tipo;
+  let t = "light"; try { t = localStorage.getItem("sent_tema") || "light"; } catch (_) {} tema(t);
+  $("#tema").onclick = () => tema(document.documentElement.dataset.t === "dark" ? "light" : "dark");
+  $("#sair").onclick = sairSessao;
+  $("#burger").onclick = () => { if (innerWidth <= 860) $("#app").classList.toggle("open"); else { $("#app").classList.toggle("mini"); setTimeout(pilula, 380); } };
+  const clk = () => ($("#clock").textContent = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })); clk(); setInterval(clk, 30000);
+  try { PERM = (await api("/permissoes")).perm; } catch (_) { return; }
+  montarMenu();
+  addEventListener("hashchange", rota); addEventListener("resize", pilula);
+  rota();
+  // sino de avisos
+  try {
+    const av = await fetch("/avisos-ativos").then((r) => r.json());
+    if (av.length) { $("#dot").style.display = "grid"; $("#dot").textContent = av.length; }
+    const cor = { urgente: "#dc2626", importante: "#f59e0b", normal: "#2563eb" };
+    $("#pop").innerHTML = `<b>📢 Avisos</b>` + (av.length ? av.map((a) => `<div class="av2" style="--c:${cor[a.prioridade] || cor.normal}"><b>${esc(a.titulo)}</b><div style="font-size:13px;color:var(--mut)">${esc(a.mensagem || "")}</div></div>`).join("") : `<div class="vazio">Sem avisos.</div>`);
+  } catch (_) {}
+  $("#bell").onclick = (e) => { e.stopPropagation(); const p = $("#pop"); p.style.display = p.style.display === "none" ? "block" : "none"; };
+  document.addEventListener("click", () => ($("#pop").style.display = "none"));
+})();
+})();
+</script>
+<script src="/js/admin-hotkey.js"></script>
+</body>
+</html>

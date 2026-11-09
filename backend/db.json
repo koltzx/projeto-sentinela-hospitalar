@@ -1,0 +1,716 @@
+{
+  "usuarios": [
+    {
+      "usuario": "triagem",
+      "senha": "scrypt$6e67d43f9d4b5888f0b4a3dfacf253f1$341a5836ff55872af852e6ac2a62ac5075398dcb124338c58a415c245f06fe0d044317f8df146dc9274355136c58938244238eefab99b05d22781a517683c196",
+      "tipo": "triagem",
+      "id": 1794223529774476,
+      "ativo": true
+    },
+    {
+      "usuario": "medico",
+      "senha": "scrypt$f25c498b29759b79c3936cc6402cd983$8853a63404ddc724b2972519888c4287597c17472542506751977ff7af5878b93aad9b443567e51abe4d3120d05db57aa5a21487834e3d49c10b96fd9c171636",
+      "tipo": "medico",
+      "id": 1794223529814037,
+      "ativo": true
+    },
+    {
+      "usuario": "atendimento",
+      "senha": "scrypt$7dfd78408a9c07b0b87cb6909b89c204$299771f91587706f62acddb05995c313445b27897040f86a4f3db1a85bd5cfd9f6fcf65061274e95a94ad06a91c59401cf13972eaeecbcd521012c5008593794",
+      "tipo": "atendimento",
+      "id": 1794223529852310,
+      "ativo": true
+    },
+    {
+      "id": 1794223529894281,
+      "usuario": "admin",
+      "senha": "scrypt$49e8d258fe2fb9e52aefdc9569a02334$6bb3e8ae6637463fc68336fe3ec0b45c90a1db6bfccebd9e3dbab535f0ef38aaa2f852fbfd15918b9240042a72978007a60aa68fcd83c07881c1eca518a36ca9",
+      "tipo": "admin",
+      "ativo": true
+    }
+  ],
+  "pacientes": [
+    {
+      "id": 1776857728699,
+      "nome": "",
+      "cpf": "",
+      "tipo": "Particular",
+      "status": "triagem",
+      "createdAt": "2026-04-22T11:35:28.699Z"
+    },
+    {
+      "id": 1776865888237,
+      "nome": "jesus",
+      "cpf": "0000000000000",
+      "tipo": "Particular",
+      "status": "triagem",
+      "createdAt": "2026-04-22T13:51:28.237Z"
+    },
+    {
+      "id": 1776868888454,
+      "nome": "kinder ovo ",
+      "cpf": "6546468844",
+      "tipo": "Particular",
+      "status": "triagem",
+      "createdAt": "2026-04-22T14:41:28.454Z"
+    },
+    {
+      "id": 1776871886695,
+      "nome": "enzo",
+      "cpf": "545343554",
+      "tipo": "Particular",
+      "status": "triagem",
+      "createdAt": "2026-04-22T15:31:26.695Z"
+    },
+    {
+      "id": 1777895890000,
+      "nome": "teste08",
+      "cpf": "rgregregergerg",
+      "tipo": "Convenio",
+      "status": "triagem",
+      "createdAt": "2026-05-04T11:58:10.000Z"
+    },
+    {
+      "id": 1777895903949,
+      "nome": "teste08",
+      "cpf": "45345435434353",
+      "tipo": "Particular",
+      "status": "triagem",
+      "createdAt": "2026-05-04T11:58:23.949Z"
+    },
+    {
+      "id": 1778767273416,
+      "nome": "yan",
+      "cpf": "53434449.9.449",
+      "tipo": "Particular",
+      "status": "triagem",
+      "createdAt": "2026-05-14T14:01:13.416Z"
+    },
+    {
+      "id": 1778768219883,
+      "nome": "test50",
+      "cpf": "3253545235",
+      "tipo": "Particular",
+      "status": "triagem",
+      "createdAt": "2026-05-14T14:16:59.883Z"
+    },
+    {
+      "id": 1778843781579,
+      "nome": "adriana",
+      "cpf": "45455435",
+      "tipo": "Particular",
+      "status": "triagem",
+      "createdAt": "2026-05-15T11:16:21.579Z"
+    },
+    {
+      "id": 1785931383386,
+      "nome": "teste20",
+      "cpf": "00000000000000",
+      "tipo": "Particular",
+      "status": "triagem",
+      "createdAt": "2026-08-05T12:03:03.386Z"
+    },
+    {
+      "id": 1785932227544,
+      "nome": "yan",
+      "cpf": "13135444486484",
+      "tipo": "Convenio",
+      "status": "triagem",
+      "createdAt": "2026-08-05T12:17:07.545Z"
+    },
+    {
+      "id": 1785932410535,
+      "nome": "debora",
+      "cpf": "316464444",
+      "tipo": "Convenio",
+      "status": "triagem",
+      "createdAt": "2026-08-05T12:20:10.535Z"
+    },
+    {
+      "id": 1785932898427,
+      "nome": "teste",
+      "cpf": "teste",
+      "tipo": "Convenio",
+      "status": "triagem",
+      "createdAt": "2026-08-05T12:28:18.427Z"
+    },
+    {
+      "id": 1785932936238,
+      "nome": "teste2028",
+      "cpf": "544545454545454",
+      "tipo": "Convenio",
+      "status": "triagem",
+      "createdAt": "2026-08-05T12:28:56.238Z"
+    },
+    {
+      "id": 1785938377866,
+      "nome": "testetete",
+      "cpf": "365353636338",
+      "tipo": "Convenio",
+      "status": "triagem",
+      "createdAt": "2026-08-05T13:59:37.866Z"
+    },
+    {
+      "id": 1785938528417,
+      "nome": "yan",
+      "cpf": "46464641146464646",
+      "tipo": "Convenio",
+      "status": "triagem",
+      "createdAt": "2026-08-05T14:02:08.417Z"
+    },
+    {
+      "id": 1794224854690,
+      "nome": "JOAO VITOR COSTA DA SILVA",
+      "cpf": "295.345.920-05",
+      "tipo": "Particular",
+      "status": "triagem",
+      "contaId": 1794223529938990,
+      "origem": "autoatendimento",
+      "queixa": "",
+      "senha": "A001",
+      "createdAt": "2026-11-09T11:47:34.690Z"
+    }
+  ],
+  "triagens": [
+    {
+      "id": 1776170673545,
+      "nome": "test",
+      "sintomas": "teste",
+      "temp": "test",
+      "risco": "verde",
+      "alergia": "teste"
+    },
+    {
+      "id": 1776857490380,
+      "nome": "teste",
+      "sintomas": "",
+      "temp": "",
+      "risco": "vermelho",
+      "alergia": "",
+      "status": "aguardando_medico"
+    },
+    {
+      "id": 1776857571101,
+      "nome": "Emily",
+      "sintomas": "dor no olho",
+      "temp": "39",
+      "risco": "vermelho",
+      "alergia": "pipiro",
+      "status": "aguardando_medico"
+    },
+    {
+      "id": 1776865942693,
+      "nome": "jesus",
+      "sintomas": "dor no olho grego",
+      "temp": "40",
+      "risco": "vermelho",
+      "alergia": "mulher ",
+      "status": "aguardando_medico"
+    },
+    {
+      "id": 1776868937414,
+      "nome": "kinder ovo ",
+      "sintomas": "dor no olho grego ",
+      "temp": "44",
+      "risco": "vermelho",
+      "alergia": "mulher",
+      "status": "aguardando_medico"
+    },
+    {
+      "id": 1776871956701,
+      "nome": "ENZO",
+      "sintomas": "DOR NO OLHO GREGO",
+      "temp": "48",
+      "risco": "vermelho",
+      "alergia": "MULHER",
+      "status": "aguardando_medico"
+    },
+    {
+      "id": 1777895934510,
+      "nome": "teste08",
+      "sintomas": "dor",
+      "temp": "50",
+      "risco": "vermelho",
+      "alergia": "mulhrter",
+      "status": "aguardando_medico"
+    },
+    {
+      "id": 1778595086172,
+      "nome": "testee444",
+      "sintomas": "teste",
+      "temp": "90",
+      "risco": "verde",
+      "alergia": "teste",
+      "status": "aguardando_medico"
+    },
+    {
+      "id": 1778595396331,
+      "nome": "teste",
+      "sintoma": "crise_ansiedade",
+      "temperatura": 39,
+      "alergia": "dorflex",
+      "risco": "vermelho",
+      "status": "aguardando_medico"
+    },
+    {
+      "id": 1778595502464,
+      "nome": "teste",
+      "sintoma": "dor_leve",
+      "temperatura": 37,
+      "alergia": "nao",
+      "risco": "amarelo",
+      "status": "aguardando_medico"
+    },
+    {
+      "id": 1778596152632,
+      "nome": "teste08",
+      "sintoma": "resfriado",
+      "temperatura": 40,
+      "alergia": "nao",
+      "observacao": "teste",
+      "risco": "vermelho",
+      "status": "aguardando_medico",
+      "createdAt": "2026-05-12T14:29:12.632Z"
+    },
+    {
+      "id": 1778674614881,
+      "nome": "teste",
+      "sintoma": "avc",
+      "temperatura": 38,
+      "alergia": "nao",
+      "observacao": "awrwarwara",
+      "risco": "amarelo",
+      "status": "aguardando_medico",
+      "createdAt": "2026-05-13T12:16:54.881Z"
+    },
+    {
+      "id": 1778767334260,
+      "nome": "yan",
+      "sintoma": "hemorragia",
+      "temperatura": 37,
+      "alergia": "dipirona",
+      "observacao": "nenhuma ",
+      "risco": "vermelho",
+      "status": "aguardando_medico",
+      "createdAt": "2026-05-14T14:02:14.260Z"
+    },
+    {
+      "id": 1778768250255,
+      "nome": "teste8",
+      "sintoma": "infarto",
+      "temperatura": 37,
+      "alergia": "nao ",
+      "observacao": "teste",
+      "risco": "vermelho",
+      "status": "aguardando_medico",
+      "createdAt": "2026-05-14T14:17:30.255Z"
+    },
+    {
+      "id": 1778843835856,
+      "nome": "adriana ",
+      "sintoma": "hemorragia",
+      "temperatura": 37,
+      "alergia": "dipirona",
+      "observacao": "",
+      "risco": "vermelho",
+      "status": "aguardando_medico",
+      "createdAt": "2026-05-15T11:17:15.856Z"
+    },
+    {
+      "id": 1780405589261,
+      "nome": "teste",
+      "sintoma": "dor_leve",
+      "temperatura": 39,
+      "alergia": "testger",
+      "observacao": "tewwetewst",
+      "risco": "vermelho",
+      "status": "aguardando_medico",
+      "createdAt": "2026-06-02T13:06:29.261Z"
+    },
+    {
+      "id": 1785931423000,
+      "nome": "jose",
+      "sintoma": "dor_leve",
+      "temperatura": 39,
+      "alergia": "teste",
+      "observacao": "",
+      "risco": "vermelho",
+      "status": "aguardando_medico",
+      "createdAt": "2026-08-05T12:03:43.000Z"
+    },
+    {
+      "id": 1785938591417,
+      "nome": "yan",
+      "sintoma": "tosse",
+      "temperatura": 40,
+      "alergia": "",
+      "observacao": "maconha ",
+      "risco": "vermelho",
+      "status": "aguardando_medico",
+      "createdAt": "2026-08-05T14:03:11.417Z"
+    }
+  ],
+  "consultas": [
+    {
+      "id": 1776857474039,
+      "paciente": "",
+      "diagnostico": "",
+      "medicacao": "",
+      "obs": "",
+      "createdAt": "2026-04-22T11:31:14.039Z"
+    },
+    {
+      "id": 1776857595380,
+      "paciente": "Emily",
+      "diagnostico": "",
+      "medicacao": "",
+      "obs": "",
+      "createdAt": "2026-04-22T11:33:15.380Z"
+    },
+    {
+      "id": 1776865995021,
+      "paciente": "jesus",
+      "diagnostico": "curado",
+      "medicacao": "noboton",
+      "obs": "",
+      "createdAt": "2026-04-22T13:53:15.021Z"
+    },
+    {
+      "id": 1776869011320,
+      "paciente": "kinder ovo ",
+      "diagnostico": "teste",
+      "medicacao": "nubotom",
+      "obs": "flex ",
+      "createdAt": "2026-04-22T14:43:31.320Z"
+    },
+    {
+      "id": 1776872012556,
+      "paciente": "ENZO",
+      "diagnostico": "JA ERA ",
+      "medicacao": "NUBOTOM",
+      "obs": "",
+      "createdAt": "2026-04-22T15:33:32.556Z"
+    },
+    {
+      "id": 1778767388545,
+      "paciente": "yan",
+      "diagnostico": "test",
+      "medicacao": "test",
+      "obs": "teste",
+      "createdAt": "2026-05-14T14:03:08.545Z"
+    },
+    {
+      "id": 1778768285274,
+      "paciente": "teste8",
+      "diagnostico": "trste",
+      "medicacao": "tetetet",
+      "obs": "etetetete",
+      "createdAt": "2026-05-14T14:18:05.274Z"
+    },
+    {
+      "id": 1778769363544,
+      "paciente": "teste8",
+      "diagnostico": "",
+      "medicacao": "",
+      "obs": "",
+      "createdAt": "2026-05-14T14:36:03.544Z"
+    },
+    {
+      "id": 1780917834569,
+      "paciente": "teste",
+      "diagnostico": "etgw",
+      "medicacao": "wetwert",
+      "obs": "wetewt",
+      "createdAt": "2026-06-08T11:23:54.569Z"
+    },
+    {
+      "id": 1781007572717,
+      "paciente": "",
+      "diagnostico": "",
+      "medicacao": "",
+      "obs": "",
+      "createdAt": "2026-06-09T12:19:32.717Z"
+    },
+    {
+      "id": 1781007577323,
+      "paciente": "",
+      "diagnostico": "",
+      "medicacao": "",
+      "obs": "",
+      "createdAt": "2026-06-09T12:19:37.323Z"
+    },
+    {
+      "id": 1781007795864,
+      "paciente": "adriana ",
+      "diagnostico": "teste",
+      "medicacao": "Soro fisiológico",
+      "obs": "teste",
+      "createdAt": "2026-06-09T12:23:15.864Z"
+    },
+    {
+      "id": 1781007896055,
+      "paciente": "kinder ovo ",
+      "diagnostico": "tste",
+      "medicacao": "Omeprazol",
+      "obs": "teste",
+      "createdAt": "2026-06-09T12:24:56.055Z"
+    },
+    {
+      "id": 1781007993318,
+      "paciente": "testee444",
+      "diagnostico": "ewrwewer",
+      "medicacao": "Amoxicilina",
+      "obs": "gergefregreggerg",
+      "createdAt": "2026-06-09T12:26:33.318Z"
+    },
+    {
+      "id": 1781009371706,
+      "paciente": "Emily",
+      "diagnostico": "dfhdfhfhsf",
+      "medicacao": "Amoxicilina",
+      "obs": "dfhdfhdfhdfs",
+      "createdAt": "2026-06-09T12:49:31.706Z"
+    },
+    {
+      "id": 1781010710968,
+      "paciente": "test",
+      "diagnostico": "twetewtwetwete",
+      "medicacao": "Amoxicilina",
+      "obs": "wetwetewtewt",
+      "createdAt": "2026-06-09T13:11:50.968Z"
+    },
+    {
+      "id": 1781016210683,
+      "paciente": "Emily",
+      "diagnostico": "hghtshr",
+      "medicacao": "Omeprazol",
+      "obs": "rththr",
+      "createdAt": "2026-06-09T14:43:30.683Z"
+    }
+  ],
+  "tv_chamada": {
+    "id": "1788880714466",
+    "localTipo": "CONSULTÓRIO",
+    "localNumero": "01",
+    "paciente": "jose",
+    "hora": "12:18"
+  },
+  "tv_historico": [
+    {
+      "id": "1788880714466",
+      "localTipo": "CONSULTÓRIO",
+      "localNumero": "01",
+      "paciente": "jose",
+      "hora": "12:18"
+    },
+    {
+      "id": "1786536795759",
+      "localTipo": "GUICHÊ",
+      "localNumero": "01",
+      "paciente": "jesus",
+      "hora": "09:13"
+    },
+    {
+      "id": "1786452864874",
+      "localTipo": "CONSULTÓRIO",
+      "localNumero": "01",
+      "paciente": "test",
+      "hora": "09:54"
+    },
+    {
+      "id": "1786449828531",
+      "localTipo": "CONSULTÓRIO",
+      "localNumero": "01",
+      "paciente": "yan",
+      "hora": "09:03"
+    },
+    {
+      "id": "1786360380212",
+      "localTipo": "CONSULTÓRIO",
+      "localNumero": "01",
+      "paciente": "teste",
+      "hora": "08:13"
+    }
+  ],
+  "medicacoes": [
+    {
+      "id": 1794223529774698,
+      "nome": "Dipirona"
+    },
+    {
+      "id": 1794223529774498,
+      "nome": "Paracetamol"
+    },
+    {
+      "id": 1794223529774964,
+      "nome": "Ibuprofeno"
+    },
+    {
+      "id": 1794223529774805,
+      "nome": "Amoxicilina"
+    },
+    {
+      "id": 1794223529774333,
+      "nome": "Azitromicina"
+    },
+    {
+      "id": 1794223529774316,
+      "nome": "Loratadina"
+    },
+    {
+      "id": 1794223529774698,
+      "nome": "Omeprazol"
+    },
+    {
+      "id": 1794223529774371,
+      "nome": "Buscopan"
+    },
+    {
+      "id": 1794223529774680,
+      "nome": "Dramin"
+    },
+    {
+      "id": 1794223529774273,
+      "nome": "Soro fisiológico"
+    }
+  ],
+  "auditoria": [
+    {
+      "id": 1794224842226263,
+      "data": "2026-11-09T11:47:22.226Z",
+      "usuario": "medico",
+      "acao": "editar agendamentos",
+      "detalhe": "JOAO VITOR COSTA DA SILVA"
+    },
+    {
+      "id": 1794224841466292,
+      "data": "2026-11-09T11:47:21.466Z",
+      "usuario": "medico",
+      "acao": "editar agendamentos",
+      "detalhe": "JOAO VITOR COSTA DA SILVA"
+    },
+    {
+      "id": 1794224839041255,
+      "data": "2026-11-09T11:47:19.041Z",
+      "usuario": "medico",
+      "acao": "editar agendamentos",
+      "detalhe": "JOAO VITOR COSTA DA SILVA"
+    },
+    {
+      "id": 1794224800051438,
+      "data": "2026-11-09T11:46:40.051Z",
+      "usuario": "medico",
+      "acao": "editar agendamentos",
+      "detalhe": "JOAO VITOR COSTA DA SILVA"
+    },
+    {
+      "id": 1794223902067085,
+      "data": "2026-11-09T11:31:42.067Z",
+      "usuario": "admin",
+      "acao": "login",
+      "detalhe": "Login no painel admin"
+    },
+    {
+      "id": 1794223728378708,
+      "data": "2026-11-09T11:28:48.378Z",
+      "usuario": "medico",
+      "acao": "editar agendamentos",
+      "detalhe": "JOAO VITOR COSTA DA SILVA"
+    },
+    {
+      "id": 1794223725476834,
+      "data": "2026-11-09T11:28:45.476Z",
+      "usuario": "medico",
+      "acao": "editar agendamentos",
+      "detalhe": "JOAO VITOR COSTA DA SILVA"
+    },
+    {
+      "id": 1794223690192522,
+      "data": "2026-11-09T11:28:10.192Z",
+      "usuario": "medico",
+      "acao": "editar agendamentos",
+      "detalhe": "JOAO VITOR COSTA DA SILVA"
+    },
+    {
+      "id": 1794223662609824,
+      "data": "2026-11-09T11:27:42.609Z",
+      "usuario": "medico",
+      "acao": "editar agendamentos",
+      "detalhe": "JOAO VITOR COSTA DA SILVA"
+    }
+  ],
+  "almox_itens": [],
+  "almox_movimentos": [],
+  "almox_fornecedores": [],
+  "agendamentos": [
+    {
+      "id": 1794223570314897,
+      "paciente": "JOAO VITOR COSTA DA SILVA",
+      "contaId": 1794223529938990,
+      "medico": "Cardiologia",
+      "data": "2026-11-10",
+      "hora": "09:00",
+      "tipo": "Exame",
+      "status": "realizado",
+      "obs": "",
+      "origem": "portal",
+      "createdAt": "2026-11-09T11:26:10.314Z",
+      "updatedAt": "2026-11-09T11:47:19.041Z"
+    },
+    {
+      "id": 1794223714482308,
+      "paciente": "JOAO VITOR COSTA DA SILVA",
+      "contaId": 1794223529938990,
+      "medico": "Clínica geral",
+      "data": "2026-11-09",
+      "hora": "08:30",
+      "tipo": "Retorno",
+      "status": "realizado",
+      "obs": "",
+      "origem": "portal",
+      "createdAt": "2026-11-09T11:28:34.482Z",
+      "updatedAt": "2026-11-09T11:47:21.466Z"
+    },
+    {
+      "id": 1794224698676948,
+      "paciente": "JOAO VITOR COSTA DA SILVA",
+      "contaId": 1794223529938990,
+      "medico": "Cardiologia",
+      "data": "2026-11-09",
+      "hora": "13:30",
+      "tipo": "Exame",
+      "status": "realizado",
+      "obs": "",
+      "origem": "portal",
+      "createdAt": "2026-11-09T11:44:58.676Z",
+      "updatedAt": "2026-11-09T11:47:22.226Z"
+    }
+  ],
+  "leitos": [],
+  "financeiro": [],
+  "equipe": [],
+  "avisos": [],
+  "contas": [
+    {
+      "id": 1794223529938990,
+      "nome": "JOAO VITOR COSTA DA SILVA",
+      "cpf": "29534592005",
+      "email": "joaosilva4075@gmail.com",
+      "nascimento": "2006-01-19",
+      "telefone": "(61) 99878-9309",
+      "convenio": "Particular",
+      "carteirinha": "",
+      "ativo": true,
+      "senha": "scrypt$32ddb42c27f6351bd46d31f1272e63cf$55d46877d3e3870f944e52f9c5b3c4adfc6fca328f3608d874cd7e7fb57bd1d17c99973449327c2a9e7b61aaa381e9aeb3bcfe7be15c853f8594674d5f432672",
+      "consentimento": true,
+      "consentimentoEm": "2026-11-09T11:25:29.938Z",
+      "createdAt": "2026-11-09T11:25:29.938Z"
+    }
+  ],
+  "exames": [],
+  "config": {
+    "nomeSistema": "Projeto Sentinela",
+    "tvHistoricoMax": 5,
+    "secret": "fa2389401f1769e464f49883fe8509f2f3febc4c8a78d6fa509e535f983a54f5"
+  }
+}

@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administração • Projeto Sentinela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f3f5f9; --card:#fff; --texto:#1f2937; --suave:#6b7280; --borda:#e5e7eb;
+    --side:#111827; --side2:#1f2937; --azul:#2563eb; --azul2:#1d4ed8;
+    --verde:#16a34a; --amarelo:#eab308; --vermelho:#dc2626;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;transition:background .3s,color .3s;background:var(--bg);color:var(--texto)}
+  button,input,select,textarea{font:inherit}
+  .hidden{display:none!important}
+
+  /* ---------- login ---------- */
+  #login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f172a,#1e3a8a)}
+  .login-box{background:#fff;width:360px;max-width:92vw;padding:32px;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+  .login-box h1{margin:0 0 4px;font-size:22px}
+  .login-box p{margin:0 0 18px;color:var(--suave);font-size:14px}
+  .login-box input{width:100%;padding:12px;margin-top:10px;border:1px solid #cbd5e1;border-radius:8px}
+  .login-box button{width:100%;margin-top:16px}
+  .erro{color:var(--vermelho);font-size:14px;margin-top:10px;min-height:18px}
+
+  /* ---------- layout ---------- */
+  #app{display:flex;min-height:100vh}
+  aside{width:230px;background:var(--side);color:#cbd5e1;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;flex-shrink:0}
+  aside .logo{padding:20px;font-weight:700;color:#fff;font-size:17px;border-bottom:1px solid var(--side2)}
+  aside .logo small{display:block;font-weight:400;color:#94a3b8;font-size:12px;margin-top:2px}
+  nav{flex:1;overflow-y:auto;padding:10px}
+  nav button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:0;color:inherit;padding:10px 12px;border-radius:8px;cursor:pointer;font-size:14px}
+  nav button:hover{background:var(--side2);color:#fff}
+  nav button.ativo{background:var(--azul);color:#fff}
+  aside .rodape{padding:12px;border-top:1px solid var(--side2);font-size:13px}
+  aside .rodape button{width:100%;margin-top:8px}
+  main{flex:1;min-width:0;padding:24px 28px}
+  .topo{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+  .topo h2{margin:0;font-size:22px}
+  .acoes{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  #menuBtn{display:none}
+
+  /* ---------- componentes ---------- */
+  .btn{background:var(--azul);color:#fff;border:0;padding:9px 14px;border-radius:8px;cursor:pointer;font-size:14px}
+  .btn:hover{background:var(--azul2)}
+  .btn.sec{background:#e5e7eb;color:var(--texto)}
+  .btn.sec:hover{background:#d1d5db}
+  .btn.perigo{background:var(--vermelho)}
+  .btn.perigo:hover{background:#b91c1c}
+  .btn.ok{background:var(--verde)}
+  .btn.peq{padding:5px 10px;font-size:13px}
+  .card{background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:18px;margin-bottom:18px}
+  .card h3{margin:0 0 12px;font-size:16px}
+  .grid{display:grid;gap:16px}
+  .g-stats{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  .g-2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .stat{background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:16px}
+  .stat .n{font-size:30px;font-weight:700}
+  .stat .l{color:var(--suave);font-size:13px}
+  input.busca{padding:9px 12px;border:1px solid #cbd5e1;border-radius:8px;min-width:220px}
+  .tabela-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--borda);border-radius:12px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--borda);vertical-align:top}
+  th{background:#f9fafb;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--suave);white-space:nowrap}
+  tr:last-child td{border-bottom:0}
+  td.acoes-td{white-space:nowrap}
+  td.acoes-td button{margin-right:4px}
+  .vazio{padding:30px;text-align:center;color:var(--suave)}
+  .badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;color:#fff;background:#6b7280}
+  .badge.verde{background:var(--verde)} .badge.amarelo{background:var(--amarelo);color:#111}
+  .badge.vermelho{background:var(--vermelho)} .badge.admin{background:#7c3aed}
+  .badge.off{background:#9ca3af}
+  .barra-linha{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:14px}
+  .barra-linha .rot{width:110px;flex-shrink:0;color:var(--suave)}
+  .barra{flex:1;background:#eef2f7;border-radius:6px;height:16px;overflow:hidden}
+  .barra i{display:block;height:100%;background:var(--azul);border-radius:6px;min-width:2px}
+  .barra i.verde{background:var(--verde)} .barra i.amarelo{background:var(--amarelo)} .barra i.vermelho{background:var(--vermelho)}
+  .barra-linha .val{width:34px;text-align:right;font-weight:600}
+  .dias{display:flex;align-items:flex-end;gap:8px;height:110px}
+  .dias div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:11px;color:var(--suave)}
+  .dias i{width:100%;background:var(--azul);border-radius:5px 5px 0 0;min-height:2px}
+  .tv-atual{background:#0f172a;color:#fff;border-radius:12px;padding:18px;text-align:center}
+  .tv-atual .p{font-size:26px;font-weight:700}
+  .tv-atual .l{color:#93c5fd;margin-top:4px}
+  .form-inline{display:flex;gap:8px;flex-wrap:wrap}
+  .form-inline input,.form-inline select{padding:9px 12px;border:1px solid #cbd5e1;border-radius:8px}
+  .lista-simples div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--borda);font-size:14px}
+  .lista-simples div:last-child{border-bottom:0}
+  .aviso{background:#fef3c7;border:1px solid #fcd34d;color:#78350f;padding:12px 14px;border-radius:10px;font-size:14px;margin-bottom:16px}
+
+  /* ---------- modal ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+  .modal{background:#fff;border-radius:14px;width:480px;max-width:100%;max-height:92vh;overflow:auto;padding:22px}
+  .modal h3{margin:0 0 14px}
+  .modal label{display:block;font-size:13px;color:var(--suave);margin-top:12px}
+  .modal input,.modal select,.modal textarea{width:100%;padding:10px;margin-top:4px;border:1px solid #cbd5e1;border-radius:8px}
+  .modal textarea{min-height:80px;resize:vertical}
+  .modal .rodape-modal{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+  #toast{position:fixed;right:18px;bottom:18px;z-index:99;display:flex;flex-direction:column;gap:8px}
+  #toast div{background:#111827;color:#fff;padding:11px 16px;border-radius:10px;font-size:14px;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+  #toast div.erro-t{background:var(--vermelho)}
+
+  @media(max-width:820px){
+    aside{position:fixed;left:-240px;z-index:40;transition:left .2s}
+    aside.aberto{left:0}
+    #menuBtn{display:inline-block}
+    main{padding:16px}
+  }
+
+  /* ---------- animações e polimento ---------- */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  @keyframes pop{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
+  @keyframes slideT{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+  @keyframes pulseDot{0%,100%{opacity:1}50%{opacity:.35}}
+  #conteudo>*{animation:fadeUp .4s both}
+  #conteudo>*:nth-child(2){animation-delay:.05s}#conteudo>*:nth-child(3){animation-delay:.1s}
+  .stat,.card{transition:transform .2s,box-shadow .2s}
+  .stat:hover,.card:hover{transform:translateY(-3px);box-shadow:0 12px 26px -14px rgba(15,23,42,.35)}
+  .stat .n{background:linear-gradient(135deg,var(--azul),#06b6d4);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .modal{animation:pop .25s both}.overlay{animation:fadeUp .2s both;backdrop-filter:blur(4px)}
+  #toast div{animation:slideT .3s both}
+  tbody tr{transition:background .15s}tbody tr:hover{background:rgba(37,99,235,.06)}
+  .btn{transition:transform .15s,filter .15s,background .2s}.btn:hover{transform:translateY(-1px)}.btn:active{transform:scale(.97)}
+  nav button{transition:background .2s,transform .2s}nav button:hover{transform:translateX(3px)}
+  .nbadge{margin-left:auto;background:var(--vermelho);color:#fff;border-radius:999px;font-size:11px;font-weight:700;padding:1px 7px}
+  .vivo{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--verde);font-weight:600}
+  .vivo i{width:8px;height:8px;border-radius:50%;background:var(--verde);animation:pulseDot 1.4s infinite}
+  .rowfila{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--borda);animation:fadeUp .3s both}
+  .rowfila:last-child{border-bottom:0}
+  .cmdk{width:520px;max-width:100%;background:var(--card);border-radius:14px;overflow:hidden;animation:pop .2s both;box-shadow:0 30px 60px rgba(0,0,0,.4)}
+  .cmdk input{width:100%;border:0;border-bottom:1px solid var(--borda);padding:16px;font-size:16px;outline:0;background:transparent;color:var(--texto)}
+  .cmdk div.it{padding:11px 16px;cursor:pointer;display:flex;gap:10px;font-size:14px}
+  .cmdk div.it.sel,.cmdk div.it:hover{background:var(--azul);color:#fff}
+  kbd{background:rgba(127,127,127,.18);border-radius:5px;padding:1px 6px;font-size:12px}
+
+  /* ---------- tema escuro ---------- */
+  [data-tema="escuro"]{--bg:#0b1220;--card:#111a2e;--texto:#e5e7eb;--suave:#94a3b8;--borda:#1f2a44;--side:#070c18;--side2:#131d33}
+  [data-tema="escuro"] th{background:#0e1627}
+  [data-tema="escuro"] .modal,[data-tema="escuro"] .login-box{background:var(--card);color:var(--texto)}
+  [data-tema="escuro"] input,[data-tema="escuro"] select,[data-tema="escuro"] textarea{background:#0e1627;color:var(--texto);border-color:var(--borda)!important}
+  [data-tema="escuro"] .btn.sec{background:#1f2a44;color:var(--texto)}
+  [data-tema="escuro"] .barra{background:#1f2a44}
+  [data-tema="escuro"] .aviso{background:#3b2f0b;border-color:#92710f;color:#fde68a}
+
+  /* ---------- visual extra ---------- */
+  aside{background:linear-gradient(180deg,#0b1224 0%,#111c3a 100%)}
+  nav button{position:relative;border-radius:10px}
+  nav button.ativo{background:linear-gradient(135deg,#2563eb,#06b6d4);box-shadow:0 8px 20px -8px rgba(37,99,235,.8)}
+  nav button.ativo::before{content:"";position:absolute;left:-10px;top:20%;height:60%;width:4px;border-radius:4px;background:#67e8f9}
+  .login-box{border:1px solid rgba(255,255,255,.2)}
+  #login{background:radial-gradient(circle at 20% 20%,#2563eb55,transparent 40%),radial-gradient(circle at 80% 80%,#06b6d455,transparent 40%),linear-gradient(135deg,#0b1224,#1e3a8a)}
+  .topo h2{font-weight:800;letter-spacing:-.02em;background:linear-gradient(135deg,var(--texto),var(--azul));-webkit-background-clip:text;background-clip:text;color:transparent}
+  tbody tr:nth-child(even){background:rgba(127,127,127,.04)}
+  .tabela-wrap,.card,.stat{box-shadow:0 1px 2px rgba(15,23,42,.04)}
+  ::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-thumb{background:#94a3b855;border-radius:9px}
+  .badge.azul{background:var(--azul)}.badge.roxo{background:#7c3aed}
+  .hero{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;color:#fff;border-radius:16px;padding:22px 26px;margin-bottom:18px;background:linear-gradient(120deg,#1d4ed8,#0891b2,#7c3aed);background-size:200% 200%;animation:fadeUp .4s both,grad 10s ease infinite}
+  .hero h3{margin:0;font-size:22px}.hero p{margin:4px 0 0;opacity:.85;font-size:14px}
+  .hero .btn{background:rgba(255,255,255,.18);backdrop-filter:blur(6px)}.hero .btn:hover{background:rgba(255,255,255,.3)}
+  @keyframes grad{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
+  .leitos{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+  .leito{position:relative;border-radius:14px;padding:14px;color:#fff;cursor:pointer;min-height:104px;animation:pop .3s both;transition:transform .2s,box-shadow .2s}
+  .leito:hover{transform:translateY(-4px) scale(1.02);box-shadow:0 14px 26px -12px rgba(0,0,0,.5)}
+  .leito b{font-size:22px;display:block}.leito small{opacity:.9;display:block}
+  .leito .st{position:absolute;right:10px;top:10px;font-size:11px;font-weight:700;background:rgba(255,255,255,.25);padding:2px 8px;border-radius:999px}
+  .leito .del{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.25);border:0;color:#fff;border-radius:8px;cursor:pointer;opacity:0;transition:.2s}
+  .leito:hover .del{opacity:1}
+  .leito.livre{background:linear-gradient(135deg,#22c55e,#15803d)}.leito.ocupado{background:linear-gradient(135deg,#ef4444,#b91c1c)}
+  .leito.limpeza{background:linear-gradient(135deg,#f59e0b,#d97706)}.leito.manutencao{background:linear-gradient(135deg,#64748b,#334155)}
+  .fin{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:16px}
+  .fin .stat .n{font-size:24px}.pos{color:var(--verde);font-weight:700}.neg{color:var(--vermelho);font-weight:700}
+  @media print{aside,.acoes,#menuBtn,#toast{display:none!important}main{padding:0}body{background:#fff}.card,.stat{box-shadow:none;break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<div id="login">
+  <div class="login-box">
+    <h1>🛡️ Administração</h1>
+    <p>Acesso restrito a administradores do sistema.</p>
+    <input id="lUsuario" placeholder="Usuário" autocomplete="username">
+    <input id="lSenha" type="password" placeholder="Senha" autocomplete="current-password">
+    <div class="erro" id="lErro"></div>
+    <button class="btn" id="lBtn">Entrar</button>
+    <p style="margin-top:14px;font-size:12px"><a href="/index.html">← Voltar ao sistema</a></p>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app" class="hidden">
+  <aside id="side">
+    <div class="logo">🛡️ <span id="nomeSistema">Sentinela</span><small>Painel administrativo</small></div>
+    <nav id="nav"></nav>
+    <div class="rodape">
+      Logado como <b id="quem"></b>
+      <button class="btn sec peq" id="temaBtn">🌙 Tema escuro</button>
+      <button class="btn sec peq" onclick="abrirPaleta()">🔎 Busca rápida <kbd>Ctrl K</kbd></button>
+      <button class="btn sec peq" onclick="location.href='/index.html'">← Sistema</button>
+      <button class="btn perigo peq" onclick="sair()">Sair</button>
+    </div>
+  </aside>
+
+  <main>
+    <div class="topo">
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="btn sec" id="menuBtn" onclick="document.getElementById('side').classList.toggle('aberto')">☰</button>
+        <h2 id="titulo"></h2>
+      </div>
+      <div class="acoes" id="acoesTopo"></div>
+    </div>
+    <div id="conteudo"></div>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ============================================================
+//  UTILIDADES
+// ============================================================
+const API = "/admin-api";
+let token = sessionStorage.getItem("adm_token");
+let usuarioLogado = sessionStorage.getItem("adm_user");
+
+const $ = (id) => document.getElementById(id);
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const dt = (v) => (v ? new Date(v).toLocaleString("pt-BR") : "—");
+
+function toast(msg, erro) {
+  const d = document.createElement("div");
+  if (erro) d.className = "erro-t";
+  d.textContent = msg;
+  $("toast").appendChild(d);
+  setTimeout(() => d.remove(), 3800);
+}
+
+async function api(caminho, opcoes = {}) {
+  const r = await fetch(API + caminho, {
+    method: opcoes.method || "GET",
+    headers: { "Content-Type": "application/json", "x-admin-token": token || "" },
+    body: opcoes.body !== undefined ? JSON.stringify(opcoes.body) : undefined
+  });
+  if (r.status === 401 && caminho !== "/login") {
+    sair(true);
+    throw new Error("Sessão expirada. Entre novamente.");
+  }
+  const dados = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(dados.erro || "Erro na requisição");
+  return dados;
+}
+
+// executa uma ação mostrando erro em toast
+async function tentar(fn, sucesso) {
+  try {
+    const r = await fn();
+    if (sucesso) toast(sucesso);
+    return r;
+  } catch (e) {
+    toast(e.message, true);
+    return null;
+  }
+}
+
+// ---------- modal ----------
+function abrirModal(html, aoMontar) {
+  const ov = document.createElement("div");
+  ov.className = "overlay";
+  ov.innerHTML = `<div class="modal">${html}</div>`;
+  ov.addEventListener("mousedown", (e) => { if (e.target === ov) ov.remove(); });
+  document.body.appendChild(ov);
+  if (aoMontar) aoMontar(ov);
+  return ov;
+}
+
+function confirmar(titulo, texto, rotulo = "Confirmar", perigo = true) {
+  return new Promise((resolve) => {
+    const ov = abrirModal(`
+      <h3>${esc(titulo)}</h3><p>${esc(texto)}</p>
+      <div class="rodape-modal">
+        <button class="btn sec" data-r="0">Cancelar</button>
+        <button class="btn ${perigo ? "perigo" : ""}" data-r="1">${esc(rotulo)}</button>
+      </div>`);
+    ov.querySelectorAll("button").forEach((b) => b.onclick = () => { ov.remove(); resolve(b.dataset.r === "1"); });
+  });
+}
+
+// pede que o usuário digite uma palavra para liberar ações destrutivas
+function confirmarDigitando(titulo, texto, palavra) {
+  return new Promise((resolve) => {
+    const ov = abrirModal(`
+      <h3>${esc(titulo)}</h3><p>${esc(texto)}</p>
+      <label>Digite <b>${esc(palavra)}</b> para confirmar</label>
+      <input id="mConf" autocomplete="off">
+      <div class="rodape-modal">
+        <button class="btn sec" data-r="0">Cancelar</button>
+        <button class="btn perigo" data-r="1">Confirmar</button>
+      </div>`);
+    ov.querySelectorAll("button").forEach((b) => b.onclick = () => {
+      if (b.dataset.r === "1" && ov.querySelector("#mConf").value !== palavra) {
+        return toast("Texto de confirmação incorreto", true);
+      }
+      ov.remove();
+      resolve(b.dataset.r === "1");
+    });
+  });
+}
+
+// formulário genérico (criar/editar)
+function formulario(titulo, campos, valores, aoSalvar) {
+  const html = campos.map((c) => {
+    const v = valores[c.k] ?? c.padrao ?? "";
+    let input;
+    if (c.t === "select") {
+      input = `<select name="${c.k}">${c.o.map((o) => {
+        const val = Array.isArray(o) ? o[0] : o, rot = Array.isArray(o) ? o[1] : o;
+        return `<option value="${esc(val)}" ${String(v) === String(val) ? "selected" : ""}>${esc(rot)}</option>`;
+      }).join("")}</select>`;
+    } else if (c.t === "textarea") {
+      input = `<textarea name="${c.k}">${esc(v)}</textarea>`;
+    } else {
+      input = `<input name="${c.k}" type="${c.t || "text"}" value="${c.t === "password" ? "" : esc(v)}" placeholder="${esc(c.ph || "")}" ${c.step ? `step="${c.step}"` : ""}>`;
+    }
+    return `<label>${esc(c.l)}${input}</label>`;
+  }).join("");
+
+  abrirModal(`<h3>${esc(titulo)}</h3><form id="fm">${html}
+    <div class="rodape-modal">
+      <button type="button" class="btn sec" id="fmCancel">Cancelar</button>
+      <button type="submit" class="btn">Salvar</button>
+    </div></form>`, (ov) => {
+    ov.querySelector("#fmCancel").onclick = () => ov.remove();
+    ov.querySelector("#fm").onsubmit = async (e) => {
+      e.preventDefault();
+      const dados = {};
+      new FormData(e.target).forEach((val, k) => dados[k] = val);
+      const ok = await aoSalvar(dados);
+      if (ok) ov.remove();
+    };
+    const primeiro = ov.querySelector("input,select,textarea");
+    if (primeiro) primeiro.focus();
+  });
+}
+
+function baixarArquivo(nome, conteudo, tipo) {
+  const blob = new Blob([conteudo], { type: tipo });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = nome;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+// ============================================================
+//  LOGIN / SESSÃO
+// ============================================================
+async function entrar() {
+  $("lErro").textContent = "";
+  try {
+    const r = await api("/login", { method: "POST", body: { usuario: $("lUsuario").value, senha: $("lSenha").value } });
+    token = r.token; usuarioLogado = r.usuario;
+    sessionStorage.setItem("adm_token", token);
+    sessionStorage.setItem("adm_user", usuarioLogado);
+    iniciar();
+  } catch (e) {
+    $("lErro").textContent = e.message;
+  }
+}
+$("lBtn").onclick = entrar;
+$("lSenha").addEventListener("keydown", (e) => { if (e.key === "Enter") entrar(); });
+$("lUsuario").addEventListener("keydown", (e) => { if (e.key === "Enter") $("lSenha").focus(); });
+
+function sair(expirou) {
+  sessionStorage.removeItem("adm_token");
+  sessionStorage.removeItem("adm_user");
+  token = null;
+  $("app").classList.add("hidden");
+  $("login").classList.remove("hidden");
+  $("lSenha").value = "";
+  if (expirou) $("lErro").textContent = "Sessão expirada. Entre novamente.";
+}
+
+// ============================================================
+//  MENU
+// ============================================================
+const MENU = [
+  ["dashboard", "📊", "Dashboard"],
+  ["live", "📡", "Operação ao vivo"],
+  ["relatorios", "📈", "Relatórios"],
+  ["agendamentos", "📅", "Agenda"],
+  ["leitos", "🛏️", "Leitos"],
+  ["financeiro", "💰", "Financeiro"],
+  ["equipe", "🧑‍⚕️", "Equipe"],
+  ["contas", "🧑", "Contas de pacientes"],
+  ["exames", "🧪", "Exames"],
+  ["avisos", "📢", "Avisos / Mural"],
+  ["pacientes", "🧑‍🤝‍🧑", "Pacientes"],
+  ["triagens", "🩺", "Triagens"],
+  ["consultas", "📋", "Consultas"],
+  ["medicacoes", "💊", "Medicações"],
+  ["almox", "📦", "Almoxarifado"],
+  ["almox_itens", "🏷️", "• Itens do estoque"],
+  ["almox_movimentos", "🔁", "• Movimentações"],
+  ["almox_fornecedores", "🚚", "• Fornecedores"],
+  ["usuarios", "👤", "Usuários"],
+  ["tv", "📺", "TV / Chamadas"],
+  ["banco", "🗄️", "Banco de dados"],
+  ["auditoria", "🕵️", "Auditoria"],
+  ["config", "⚙️", "Configurações"]
+];
+
+let telaAtual = "dashboard";
+let badges = {};
+let timerAuto = null;
+
+function montarMenu() {
+  $("nav").innerHTML = MENU.map(([id, ic, nome]) =>
+    `<button data-id="${id}" class="${id === telaAtual ? "ativo" : ""}"><span>${ic}</span>${nome}${badges[id] ? `<span class="nbadge">${badges[id]}</span>` : ""}</button>`).join("");
+  $("nav").querySelectorAll("button").forEach((b) => b.onclick = () => { ir(b.dataset.id); $("side").classList.remove("aberto"); });
+}
+
+function ir(id) {
+  telaAtual = id;
+  clearInterval(timerAuto);
+  montarMenu();
+  $("titulo").textContent = MENU.find((m) => m[0] === id)[2];
+  $("acoesTopo").innerHTML = "";
+  $("conteudo").innerHTML = `<div class="vazio">Carregando…</div>`;
+  const tela = TELAS[id];
+  tentar(() => tela());
+}
+
+async function iniciar() {
+  $("login").classList.add("hidden");
+  $("app").classList.remove("hidden");
+  $("quem").textContent = usuarioLogado;
+  tentar(async () => {
+    const c = await api("/config");
+    $("nomeSistema").textContent = c.nomeSistema;
+  });
+  ir(telaAtual);
+  atualizarBadges();
+  setInterval(atualizarBadges, 60000);
+}
+
+async function atualizarBadges() {
+  try {
+    const a = (await api("/almox/resumo")).alertas;
+    badges.almox = a.vencidos.length + a.semEstoque.length + a.baixo.length + a.venceBreve.length;
+    montarMenu();
+  } catch (_) {}
+}
+
+// ============================================================
+//  DASHBOARD
+// ============================================================
+function barras(obj, classes = {}) {
+  const itens = Object.entries(obj);
+  if (!itens.length) return `<div class="vazio">Sem dados</div>`;
+  const max = Math.max(...itens.map(([, v]) => v), 1);
+  return itens.map(([k, v]) => `
+    <div class="barra-linha"><span class="rot">${esc(k)}</span>
+      <div class="barra"><i class="${classes[k] || ""}" style="width:${(v / max) * 100}%"></i></div>
+      <span class="val">${v}</span></div>`).join("");
+}
+
+function colunasDias(arr) {
+  const max = Math.max(...arr.map((x) => x.total), 1);
+  return `<div class="dias">${arr.map((x) => `
+    <div title="${x.total}"><span>${x.total}</span><i style="height:${(x.total / max) * 80}px"></i><span>${x.dia.slice(8)}/${x.dia.slice(5, 7)}</span></div>`).join("")}</div>`;
+}
+
+async function telaDashboard() {
+  const r = await api("/resumo");
+  const t = r.totais;
+  const stat = (n, l) => `<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`;
+  $("conteudo").innerHTML = `
+    <div class="hero"><div><h3>${new Date().getHours() < 12 ? "Bom dia" : new Date().getHours() < 18 ? "Boa tarde" : "Boa noite"}, ${esc(usuarioLogado)} 👋</h3>
+        <p>${new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} • visão geral da operação</p></div>
+        <div class="acoes"><button class="btn" onclick="ir('live')">📡 Operação ao vivo</button><button class="btn" onclick="ir('leitos')">🛏️ Leitos</button><button class="btn" onclick="abrirPaleta()">🔎 Busca rápida</button></div></div>
+    <div class="grid g-stats" style="margin-bottom:18px">
+      ${stat(t.pacientes, "Pacientes")}${stat(t.triagens, "Triagens")}${stat(t.consultas, "Consultas")}
+      ${stat(t.usuarios, "Usuários")}${stat(t.medicacoes, "Medicações no catálogo")}
+    </div>
+    <div class="grid g-2">
+      <div class="card"><h3>Classificação de risco</h3>${barras(r.risco, { verde: "verde", amarelo: "amarelo", vermelho: "vermelho" })}</div>
+      <div class="card"><h3>Status dos pacientes</h3>${barras(r.statusPacientes)}</div>
+      <div class="card"><h3>Pacientes cadastrados (7 dias)</h3>${colunasDias(r.pacientesPorDia)}</div>
+      <div class="card"><h3>Triagens (7 dias)</h3>${colunasDias(r.triagensPorDia)}</div>
+      <div class="card"><h3>Consultas (7 dias)</h3>${colunasDias(r.consultasPorDia)}</div>
+      <div class="card"><h3>Usuários por perfil</h3>${barras(r.tiposUsuario)}</div>
+      <div class="card"><h3>Chamada atual na TV</h3>
+        ${r.tv.chamada
+          ? `<div class="tv-atual"><div class="p">${esc(r.tv.chamada.paciente)}</div><div class="l">${esc(r.tv.chamada.localTipo)} ${esc(r.tv.chamada.localNumero)} • ${esc(r.tv.chamada.hora)}</div></div>`
+          : `<div class="vazio">Nenhuma chamada ativa</div>`}
+      </div>
+      <div class="card"><h3>Últimas ações administrativas</h3>
+        <div class="lista-simples">${r.ultimasAcoes.length
+          ? r.ultimasAcoes.map((a) => `<div><span><b>${esc(a.usuario)}</b> — ${esc(a.acao)}</span><span style="color:var(--suave)">${dt(a.data)}</span></div>`).join("")
+          : `<div class="vazio">Nada registrado</div>`}</div>
+      </div>
+    </div>`;
+  $("acoesTopo").innerHTML = `<button class="btn sec" onclick="ir('dashboard')">🔄 Atualizar</button>`;
+}
+
+// ============================================================
+//  TABELAS GENÉRICAS (CRUD)
+// ============================================================
+const badgeRisco = (v) => `<span class="badge ${esc(v)}">${esc(v)}</span>`;
+
+const SIT = {
+  ok: ["verde", "ok"], baixo: ["amarelo", "estoque baixo"], vence_breve: ["amarelo", "vence em breve"],
+  sem_estoque: ["vermelho", "sem estoque"], vencido: ["vermelho", "vencido"]
+};
+const dataBR = (v) => (v ? v.split("-").reverse().join("/") : "—");
+
+function situacaoItem(i) {
+  const hoje = new Date().toISOString().slice(0, 10);
+  const limite = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+  if (i.validade && i.validade < hoje) return "vencido";
+  if ((i.estoque || 0) <= 0) return "sem_estoque";
+  if (i.minimo > 0 && i.estoque <= i.minimo) return "baixo";
+  if (i.validade && i.validade <= limite) return "vence_breve";
+  return "ok";
+}
+
+const brl = (v) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const mini = (n, l, cls = "") => `<div class="stat"><div class="n ${cls}">${n}</div><div class="l">${l}</div></div>`;
+const COR_AGENDA = { agendado: "amarelo", confirmado: "azul", realizado: "verde", cancelado: "vermelho" };
+
+const COLECOES = {
+  contas: {
+    colunas: [["nome", "Paciente"], ["cpf", "CPF", (v) => esc(String(v || "").replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4"))], ["email", "E-mail"], ["telefone", "Telefone"], ["convenio", "Convênio"],
+      ["ativo", "Conta", (v) => v === false ? `<span class="badge off">encerrada</span>` : `<span class="badge verde">ativa</span>`], ["createdAt", "Criada em", dt]],
+    campos: [
+      { k: "nome", l: "Nome" }, { k: "email", l: "E-mail", t: "email" }, { k: "telefone", l: "Telefone" }, { k: "convenio", l: "Convênio" },
+      { k: "nascimento", l: "Nascimento", t: "date" },
+      { k: "ativo", l: "Situação da conta", t: "select", o: [["true", "Ativa"], ["false", "Encerrada / bloqueada"]], padrao: "true" },
+      { k: "senha", l: "Nova senha temporária (opcional, mín. 6)", t: "password" }
+    ],
+    singular: "conta de paciente", semNovo: true,
+    info: "Contas criadas pelos próprios pacientes no portal. Aqui você pode corrigir dados, bloquear o acesso ou definir uma senha temporária.",
+    topo: (d) => `<div class="fin">${mini(d.length, "Contas")}${mini(d.filter((c) => c.ativo !== false).length, "Ativas", "pos")}${mini(d.filter((c) => c.ativo === false).length, "Encerradas")}${mini(d.filter((c) => (c.createdAt || "").slice(0, 10) === new Date().toISOString().slice(0, 10)).length, "Novas hoje")}</div>`
+  },
+  exames: {
+    colunas: [["createdAt", "Data", dt], ["paciente", "Paciente"], ["exame", "Exame"], ["solicitante", "Solicitante"],
+      ["status", "Status", (v) => `<span class="badge ${v === "pronto" ? "verde" : v === "coletado" ? "azul" : "amarelo"}">${esc(v)}</span>`], ["resultado", "Resultado"]],
+    campos: [
+      { k: "paciente", l: "Paciente" }, { k: "exame", l: "Exame" }, { k: "solicitante", l: "Solicitante" },
+      { k: "status", l: "Status", t: "select", o: ["solicitado", "coletado", "pronto"], padrao: "solicitado" },
+      { k: "resultado", l: "Resultado / laudo", t: "textarea" }, { k: "obs", l: "Observações", t: "textarea" }
+    ],
+    singular: "exame",
+    topo: (d) => `<div class="fin">${mini(d.filter((e) => e.status === "solicitado").length, "Solicitados")}${mini(d.filter((e) => e.status === "coletado").length, "Em análise")}${mini(d.filter((e) => e.status === "pronto").length, "Prontos", "pos")}</div>`
+  },
+  agendamentos: {
+    colunas: [["data", "Data", dataBR], ["hora", "Hora"], ["paciente", "Paciente"], ["medico", "Médico"], ["tipo", "Tipo"],
+      ["status", "Status", (v) => `<span class="badge ${COR_AGENDA[v] || ""}">${esc(v)}</span>`], ["obs", "Obs."]],
+    campos: [
+      { k: "paciente", l: "Paciente" }, { k: "medico", l: "Médico / especialidade" },
+      { k: "data", l: "Data", t: "date" }, { k: "hora", l: "Horário", t: "time" },
+      { k: "tipo", l: "Tipo", t: "select", o: ["Consulta", "Retorno", "Exame", "Procedimento"] },
+      { k: "status", l: "Status", t: "select", o: ["agendado", "confirmado", "realizado", "cancelado"], padrao: "agendado" },
+      { k: "obs", l: "Observações", t: "textarea" }
+    ],
+    singular: "agendamento",
+    enriquecer: (l) => [...l].sort((a, b) => `${a.data}${a.hora}`.localeCompare(`${b.data}${b.hora}`)),
+    topo: (d) => {
+      const hoje = new Date().toISOString().slice(0, 10), c = (f) => d.filter(f).length;
+      return `<div class="fin">${mini(c((a) => a.data === hoje && a.status !== "cancelado"), "Hoje")}${mini(c((a) => a.data > hoje && a.status !== "cancelado"), "Próximos")}
+        ${mini(c((a) => a.status === "confirmado"), "Confirmados")}${mini(c((a) => a.status === "cancelado"), "Cancelados")}</div>`;
+    }
+  },
+  financeiro: {
+    colunas: [["data", "Data", dataBR], ["descricao", "Descrição"], ["categoria", "Categoria"],
+      ["tipo", "Tipo", (v) => `<span class="badge ${v === "receita" ? "verde" : "vermelho"}">${v}</span>`],
+      ["valor", "Valor", (v, it) => `<span class="${it.tipo === "receita" ? "pos" : "neg"}">${it.tipo === "receita" ? "+" : "−"} ${brl(v)}</span>`],
+      ["status", "Situação", (v) => `<span class="badge ${v === "pago" ? "verde" : "amarelo"}">${v}</span>`]],
+    campos: [
+      { k: "descricao", l: "Descrição" },
+      { k: "tipo", l: "Tipo", t: "select", o: [["receita", "Receita"], ["despesa", "Despesa"]] },
+      { k: "categoria", l: "Categoria", ph: "Ex.: Convênio, Fornecedor, Salários" },
+      { k: "valor", l: "Valor (R$)", t: "number", step: "0.01" },
+      { k: "data", l: "Data", t: "date" },
+      { k: "status", l: "Situação", t: "select", o: [["pago", "Pago / recebido"], ["pendente", "Pendente"]], padrao: "pendente" }
+    ],
+    singular: "lançamento",
+    enriquecer: (l) => [...l].sort((a, b) => (b.data || "").localeCompare(a.data || "")),
+    topo: (d) => {
+      const soma = (t, st) => d.filter((x) => x.tipo === t && (!st || x.status === st)).reduce((s, x) => s + x.valor, 0);
+      const saldo = soma("receita", "pago") - soma("despesa", "pago");
+      return `<div class="fin">${mini(brl(soma("receita", "pago")), "Receitas recebidas", "pos")}${mini(brl(soma("despesa", "pago")), "Despesas pagas", "neg")}
+        ${mini(brl(saldo), "Saldo", saldo >= 0 ? "pos" : "neg")}${mini(brl(soma("receita", "pendente")), "A receber")}${mini(brl(soma("despesa", "pendente")), "A pagar")}</div>`;
+    }
+  },
+  equipe: {
+    colunas: [["nome", "Nome"], ["cargo", "Cargo"], ["setor", "Setor"], ["turno", "Turno"], ["telefone", "Telefone"]],
+    campos: [
+      { k: "nome", l: "Nome" },
+      { k: "cargo", l: "Cargo", t: "select", o: ["Médico(a)", "Enfermeiro(a)", "Técnico(a) de enfermagem", "Recepcionista", "Farmacêutico(a)", "Administrativo", "Limpeza", "Segurança"] },
+      { k: "setor", l: "Setor", ph: "Ex.: UTI, Pronto-socorro" },
+      { k: "turno", l: "Turno", t: "select", o: ["Manhã", "Tarde", "Noite", "Plantão 12h", "Plantão 24h"] },
+      { k: "telefone", l: "Telefone" }
+    ],
+    singular: "profissional",
+    topo: (d) => `<div class="fin">${mini(d.length, "Profissionais")}${["Manhã", "Tarde", "Noite"].map((t) => mini(d.filter((x) => x.turno === t).length, "Turno " + t.toLowerCase())).join("")}</div>`
+  },
+  avisos: {
+    colunas: [["titulo", "Título"], ["mensagem", "Mensagem"],
+      ["prioridade", "Prioridade", (v) => `<span class="badge ${v === "urgente" ? "vermelho" : v === "importante" ? "amarelo" : "azul"}">${v}</span>`],
+      ["ativo", "Situação", (v) => v === false ? `<span class="badge off">inativo</span>` : `<span class="badge verde">no ar</span>`]],
+    campos: [
+      { k: "titulo", l: "Título" }, { k: "mensagem", l: "Mensagem", t: "textarea" },
+      { k: "prioridade", l: "Prioridade", t: "select", o: ["normal", "importante", "urgente"] },
+      { k: "ativo", l: "Situação", t: "select", o: [["true", "No ar"], ["false", "Inativo"]], padrao: "true" }
+    ],
+    singular: "aviso",
+    info: "Os avisos que estiverem “no ar” rolam na faixa inferior do painel da TV, os urgentes primeiro."
+  },
+  almox_itens: {
+    colunas: [
+      ["nome", "Item"], ["categoria", "Categoria"],
+      ["estoque", "Estoque", (v, it) => `<b>${esc(v)}</b> ${esc(it.unidade)}`],
+      ["minimo", "Mínimo", (v, it) => `${esc(v)} ${esc(it.unidade)}`],
+      ["validade", "Validade", dataBR], ["lote", "Lote"], ["localizacao", "Local"], ["fornecedor", "Fornecedor"],
+      ["_sit", "Situação", (v) => `<span class="badge ${SIT[v][0]}">${SIT[v][1]}</span>`]
+    ],
+    campos: [
+      { k: "nome", l: "Nome do item" },
+      { k: "categoria", l: "Categoria", ph: "Ex.: Medicamento, Material de curativo, Limpeza" },
+      { k: "unidade", l: "Unidade de medida", t: "select", o: ["un", "cx", "pct", "frasco", "ampola", "comprimido", "ml", "L", "g", "kg", "par"], padrao: "un" },
+      { k: "estoque", l: "Estoque inicial", t: "number", step: "any", soNovo: true, padrao: 0 },
+      { k: "minimo", l: "Estoque mínimo (gera alerta)", t: "number", step: "any", padrao: 0 },
+      { k: "validade", l: "Validade", t: "date" },
+      { k: "lote", l: "Lote" }, { k: "localizacao", l: "Localização (prateleira/sala)" }, { k: "fornecedor", l: "Fornecedor" }
+    ],
+    singular: "item",
+    info: "O saldo só muda por movimentações (entrada, saída ou ajuste), assim todo o histórico fica registrado.",
+    enriquecer: (lista) => lista.map((i) => ({ ...i, _sit: situacaoItem(i) })),
+    acoesExtra: [{ id: "mov", rot: "🔁 Movimentar", fn: (item, rec) => abrirMovimento(item, rec) }]
+  },
+  almox_movimentos: {
+    colunas: [
+      ["createdAt", "Data", dt], ["itemNome", "Item"],
+      ["tipo", "Tipo", (v) => `<span class="badge ${v === "entrada" ? "verde" : v === "saida" ? "vermelho" : "amarelo"}">${v}</span>`],
+      ["quantidade", "Qtd.", (v, it) => `${it.tipo === "entrada" ? "+" : it.tipo === "saida" ? "−" : "="} ${esc(v)} ${esc(it.unidade)}`],
+      ["saldoApos", "Saldo", (v, it) => `${esc(it.saldoAnterior)} → <b>${esc(v)}</b>`],
+      ["motivo", "Motivo / destino"], ["usuario", "Responsável"]
+    ],
+    campos: [], singular: "movimentação", somenteLeitura: true,
+    novoRotulo: "＋ Nova movimentação",
+    novoCustom: (rec) => abrirMovimento(null, rec),
+    info: "Histórico imutável de entradas, saídas e ajustes. Para corrigir o saldo, faça um ajuste."
+  },
+  almox_fornecedores: {
+    colunas: [["nome", "Fornecedor"], ["cnpj", "CNPJ"], ["contato", "Contato"], ["telefone", "Telefone"], ["email", "E-mail"]],
+    campos: [
+      { k: "nome", l: "Nome / razão social" }, { k: "cnpj", l: "CNPJ" }, { k: "contato", l: "Pessoa de contato" },
+      { k: "telefone", l: "Telefone" }, { k: "email", l: "E-mail", t: "email" }
+    ],
+    singular: "fornecedor"
+  },
+  pacientes: {
+    colunas: [["id", "ID"], ["nome", "Nome"], ["cpf", "CPF"], ["tipo", "Tipo"], ["status", "Status"], ["createdAt", "Cadastro", dt]],
+    campos: [
+      { k: "nome", l: "Nome" }, { k: "cpf", l: "CPF" },
+      { k: "tipo", l: "Tipo de atendimento", t: "select", o: ["Convenio", "Particular"] },
+      { k: "status", l: "Status", t: "select", o: ["triagem", "em_atendimento", "atendido", "alta"], padrao: "triagem" }
+    ],
+    singular: "paciente"
+  },
+  triagens: {
+    colunas: [["id", "ID"], ["nome", "Paciente"], ["sintoma", "Sintoma"], ["temperatura", "Temp."], ["risco", "Risco", badgeRisco], ["alergia", "Alergia"], ["observacao", "Observação"], ["status", "Status"], ["createdAt", "Data", dt]],
+    campos: [
+      { k: "nome", l: "Paciente" }, { k: "sintoma", l: "Sintoma" },
+      { k: "temperatura", l: "Temperatura (°C)", t: "number", step: "0.1" },
+      { k: "risco", l: "Risco", t: "select", o: ["verde", "amarelo", "vermelho"] },
+      { k: "alergia", l: "Alergias" }, { k: "observacao", l: "Observação", t: "textarea" },
+      { k: "status", l: "Status", t: "select", o: ["aguardando_medico", "em_atendimento", "atendido"], padrao: "aguardando_medico" }
+    ],
+    singular: "triagem"
+  },
+  consultas: {
+    colunas: [["id", "ID"], ["paciente", "Paciente"], ["diagnostico", "Diagnóstico"], ["medicacao", "Medicação"], ["obs", "Observações"], ["createdAt", "Data", dt]],
+    campos: [
+      { k: "paciente", l: "Paciente" }, { k: "diagnostico", l: "Diagnóstico", t: "textarea" },
+      { k: "medicacao", l: "Medicação" }, { k: "obs", l: "Observações", t: "textarea" }
+    ],
+    singular: "consulta"
+  },
+  medicacoes: {
+    colunas: [["id", "ID"], ["nome", "Medicação"], ["createdAt", "Criada em", dt]],
+    campos: [{ k: "nome", l: "Nome da medicação" }],
+    singular: "medicação",
+    info: "Este catálogo alimenta a lista de medicações exibida na tela do médico."
+  },
+  usuarios: {
+    colunas: [["id", "ID"], ["usuario", "Usuário"], ["tipo", "Perfil", (v) => `<span class="badge ${v === "admin" ? "admin" : ""}">${esc(v)}</span>`], ["ativo", "Situação", (v) => v === false ? `<span class="badge off">inativo</span>` : `<span class="badge verde">ativo</span>`], ["createdAt", "Criado em", dt]],
+    campos: [
+      { k: "usuario", l: "Nome de usuário" },
+      { k: "senha", l: "Senha", t: "password", ph: "mín. 4 caracteres" },
+      { k: "tipo", l: "Perfil", t: "select", o: ["atendimento", "triagem", "medico", "farmacia", "admin"] },
+      { k: "ativo", l: "Situação", t: "select", o: [["true", "Ativo"], ["false", "Inativo"]], padrao: "true" }
+    ],
+    singular: "usuário"
+  }
+};
+
+// valores exibidos em texto puro (busca e CSV)
+function valorTexto(c, item) {
+  const v = item[c[0]];
+  if (c[0] === "createdAt") return dt(v);
+  if (c[0] === "ativo") return v === false ? "inativo" : "ativo";
+  if (c[0] === "_sit") return SIT[v] ? SIT[v][1] : "";
+  if (c[0] === "validade") return dataBR(v);
+  return v ?? "";
+}
+
+async function telaColecao(col) {
+  const cfg = COLECOES[col];
+  const enr = cfg.enriquecer || ((x) => x);
+  let dados = enr(await api(`/colecao/${col}`));
+  let termo = "";
+
+  const desenhar = () => {
+    const filtrados = dados.filter((it) =>
+      !termo || cfg.colunas.some((c) => String(valorTexto(c, it)).toLowerCase().includes(termo)));
+
+    const linhas = filtrados.map((it) => `<tr>
+      ${cfg.colunas.map((c) => `<td>${c[2] && c[0] !== "createdAt" ? c[2](it[c[0]], it) : esc(valorTexto(c, it))}</td>`).join("")}
+      ${cfg.somenteLeitura ? "" : `<td class="acoes-td">
+        ${(cfg.acoesExtra || []).map((a) => `<button class="btn ok peq" data-a="${a.id}" data-id="${it.id}">${a.rot}</button>`).join("")}
+        <button class="btn sec peq" data-a="editar" data-id="${it.id}">✏️ Editar</button>
+        <button class="btn perigo peq" data-a="excluir" data-id="${it.id}">🗑️</button>
+      </td>`}</tr>`).join("");
+
+    $("lista").innerHTML = filtrados.length
+      ? `<table><thead><tr>${cfg.colunas.map((c) => `<th>${c[1]}</th>`).join("")}${cfg.somenteLeitura ? "" : "<th></th>"}</tr></thead><tbody>${linhas}</tbody></table>`
+      : `<div class="vazio">Nenhum registro encontrado.</div>`;
+    $("topoCol").innerHTML = cfg.topo ? cfg.topo(dados) : "";
+    $("contagem").textContent = `${filtrados.length} de ${dados.length} registro(s)`;
+
+    $("lista").querySelectorAll("button").forEach((b) => b.onclick = () => {
+      const item = dados.find((x) => String(x.id) === b.dataset.id);
+      if (b.dataset.a === "editar") editar(item);
+      else if (b.dataset.a === "excluir") excluir(item);
+      else { const ex = (cfg.acoesExtra || []).find((a) => a.id === b.dataset.a); if (ex) ex.fn(item, recarregar); }
+    });
+  };
+
+  const recarregar = async () => { dados = enr(await api(`/colecao/${col}`)); desenhar(); };
+
+  const preparar = (d) => {
+    const saida = { ...d };
+    if ("ativo" in saida) saida.ativo = saida.ativo === "true";
+    if ((col === "usuarios" || col === "contas") && !saida.senha) delete saida.senha;
+    return saida;
+  };
+
+  const abrirForm = (item) => {
+    const novo = !item;
+    let campos = cfg.campos.filter((c) => !(c.soNovo && item));
+    if (col === "usuarios" && !novo) {
+      campos = campos.map((c) => c.k === "senha" ? { ...c, l: "Nova senha (deixe vazio para manter)" } : c);
+    }
+    const valores = novo ? {} : { ...item, ativo: String(item.ativo !== false) };
+    formulario(novo ? `Novo(a) ${cfg.singular}` : `Editar ${cfg.singular}`, campos, valores, async (d) => {
+      const r = await tentar(
+        () => api(novo ? `/colecao/${col}` : `/colecao/${col}/${item.id}`, { method: novo ? "POST" : "PUT", body: preparar(d) }),
+        novo ? "Registro criado" : "Registro atualizado");
+      if (r) { await recarregar(); return true; }
+      return false;
+    });
+  };
+  const editar = (item) => abrirForm(item);
+
+  const excluir = async (item) => {
+    if (!(await confirmar("Excluir registro", `Tem certeza que deseja excluir este(a) ${cfg.singular}? Esta ação não pode ser desfeita.`, "Excluir"))) return;
+    if (await tentar(() => api(`/colecao/${col}/${item.id}`, { method: "DELETE" }), "Registro excluído")) recarregar();
+  };
+
+  $("conteudo").innerHTML = `
+    ${cfg.info ? `<div class="aviso" style="background:#dbeafe;border-color:#93c5fd;color:#1e3a8a">${esc(cfg.info)}</div>` : ""}
+    <div id="topoCol"></div>
+    <div class="tabela-wrap" id="lista"></div>
+    <p style="color:var(--suave);font-size:13px" id="contagem"></p>`;
+
+  $("acoesTopo").innerHTML = `
+    <input class="busca" id="busca" placeholder="🔎 Buscar…">
+    ${cfg.semNovo ? "" : `<button class="btn" id="bNovo">${cfg.novoRotulo || "＋ Novo"}</button>`}
+    <button class="btn sec" id="bCsv">⬇ CSV</button>
+    ${col !== "usuarios" ? `<button class="btn perigo" id="bLimpar">Apagar todos</button>` : ""}`;
+
+  $("busca").oninput = (e) => { termo = e.target.value.toLowerCase(); desenhar(); };
+  if ($("bNovo")) $("bNovo").onclick = () => (cfg.novoCustom ? cfg.novoCustom(recarregar) : abrirForm(null));
+  $("bCsv").onclick = () => {
+    const cab = cfg.colunas.map((c) => c[1]);
+    const lin = dados.map((it) => cfg.colunas.map((c) => `"${String(valorTexto(c, it)).replace(/"/g, '""')}"`).join(";"));
+    baixarArquivo(`${col}.csv`, "\ufeff" + [cab.join(";"), ...lin].join("\n"), "text/csv;charset=utf-8");
+  };
+  if ($("bLimpar")) $("bLimpar").onclick = async () => {
+    if (!(await confirmarDigitando("Apagar todos os registros", `Isso remove TODOS os registros de "${MENU.find((m) => m[0] === col)[2]}".`, "CONFIRMAR"))) return;
+    if (await tentar(() => api(`/colecao/${col}/limpar`, { method: "POST", body: { confirmar: "CONFIRMAR" } }), "Registros apagados")) recarregar();
+  };
+  desenhar();
+}
+
+// ============================================================
+//  ALMOXARIFADO
+// ============================================================
+async function abrirMovimento(itemPre, aposSalvar) {
+  const itens = await tentar(() => api("/colecao/almox_itens"));
+  if (!itens) return;
+  if (!itens.length) return toast("Cadastre um item antes de movimentar o estoque", true);
+  const ord = [...itens].sort((a, b) => a.nome.localeCompare(b.nome));
+
+  formulario("Movimentar estoque", [
+    { k: "itemId", l: "Item", t: "select", o: ord.map((i) => [i.id, `${i.nome} (saldo: ${i.estoque} ${i.unidade})`]) },
+    { k: "tipo", l: "Tipo de movimentação", t: "select", o: [["entrada", "Entrada (compra / recebimento)"], ["saida", "Saída (consumo / uso)"], ["ajuste", "Ajuste (definir o saldo contado)"]] },
+    { k: "quantidade", l: "Quantidade (no ajuste: novo saldo total)", t: "number", step: "any" },
+    { k: "motivo", l: "Motivo / destino / nota fiscal" }
+  ], { itemId: itemPre ? itemPre.id : ord[0].id, tipo: "entrada" }, async (d) => {
+    if (d.quantidade === "") { toast("Informe a quantidade", true); return false; }
+    const r = await tentar(() => api("/almox/movimentar", { method: "POST", body: d }), "Movimentação registrada");
+    if (!r) return false;
+    if (aposSalvar) await aposSalvar();
+    return true;
+  });
+}
+
+async function telaAlmox() {
+  const r = await api("/almox/resumo");
+  const a = r.alertas;
+  const totalAlertas = a.vencidos.length + a.semEstoque.length + a.baixo.length + a.venceBreve.length;
+  const stat = (n, l) => `<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`;
+
+  const bloco = (titulo, lista, cor, detalhe) => `
+    <div class="card"><h3><span class="badge ${cor}">${lista.length}</span> ${titulo}</h3>
+      ${lista.length
+        ? `<div class="lista-simples">${lista.map((i) => `<div><span><b>${esc(i.nome)}</b></span><span style="color:var(--suave)">${detalhe(i)}</span></div>`).join("")}</div>`
+        : `<div class="vazio" style="padding:12px">Nenhum item</div>`}
+    </div>`;
+
+  $("conteudo").innerHTML = `
+    <div class="grid g-stats" style="margin-bottom:18px">
+      ${stat(r.totais.itens, "Itens cadastrados")}${stat(totalAlertas, "Itens com alerta")}
+      ${stat(r.totais.movimentacoes, "Movimentações")}${stat(r.totais.fornecedores, "Fornecedores")}
+    </div>
+    ${totalAlertas === 0 && r.totais.itens > 0 ? `<div class="aviso" style="background:#dcfce7;border-color:#86efac;color:#14532d">Tudo certo: nenhum item vencido, sem estoque ou abaixo do mínimo.</div>` : ""}
+    <div class="grid g-2">
+      ${bloco("Vencidos", a.vencidos, "vermelho", (i) => `venceu em ${dataBR(i.validade)}`)}
+      ${bloco("Sem estoque", a.semEstoque, "vermelho", (i) => `0 ${esc(i.unidade)}`)}
+      ${bloco("Abaixo do mínimo", a.baixo, "amarelo", (i) => `${esc(i.estoque)} / mín. ${esc(i.minimo)} ${esc(i.unidade)}`)}
+      ${bloco("Vencem em até 30 dias", a.venceBreve, "amarelo", (i) => dataBR(i.validade))}
+      <div class="card"><h3>Entradas (7 dias)</h3>${colunasDias(r.entradasPorDia)}</div>
+      <div class="card"><h3>Saídas (7 dias)</h3>${colunasDias(r.saidasPorDia)}</div>
+      <div class="card"><h3>Mais consumidos (30 dias)</h3>
+        ${barras(Object.fromEntries(r.topSaidas))}
+      </div>
+    </div>`;
+
+  $("acoesTopo").innerHTML = `
+    <button class="btn" id="aMov">＋ Nova movimentação</button>
+    <button class="btn sec" onclick="ir('almox')">🔄 Atualizar</button>`;
+  $("aMov").onclick = () => abrirMovimento(null, () => ir("almox"));
+}
+
+// ============================================================
+//  TV
+// ============================================================
+async function telaTv() {
+  const render = async () => {
+    const r = await api("/tv");
+    $("conteudo").innerHTML = `
+      <div class="grid g-2">
+        <div class="card"><h3>Chamada atual</h3>
+          ${r.chamada
+            ? `<div class="tv-atual"><div class="p">${esc(r.chamada.paciente)}</div><div class="l">${esc(r.chamada.localTipo)} ${esc(r.chamada.localNumero)} • ${esc(r.chamada.hora)}</div></div>
+               <button class="btn sec" style="margin-top:12px" id="tLimparCh">Limpar chamada da tela</button>`
+            : `<div class="vazio">Nenhuma chamada ativa</div>`}
+        </div>
+        <div class="card"><h3>Chamar paciente manualmente</h3>
+          <div class="form-inline" style="flex-direction:column">
+            <input id="tPac" placeholder="Nome do paciente">
+            <select id="tTipo"><option>GUICHÊ</option><option>CONSULTÓRIO</option><option>TRIAGEM</option><option>SALA</option></select>
+            <input id="tNum" placeholder="Número" value="01">
+            <button class="btn ok" id="tChamar">📣 Chamar na TV</button>
+          </div>
+        </div>
+      </div>
+      <div class="card"><h3>Histórico de chamadas</h3>
+        ${r.historico.length ? `<div class="lista-simples">${r.historico.map((h) => `
+          <div><span><b>${esc(h.paciente)}</b> — ${esc(h.localTipo)} ${esc(h.localNumero)} (${esc(h.hora)})</span>
+          <button class="btn perigo peq" data-id="${esc(h.id)}">Remover</button></div>`).join("")}</div>`
+          : `<div class="vazio">Histórico vazio</div>`}
+      </div>`;
+
+    $("acoesTopo").innerHTML = `
+      <button class="btn sec" id="tAtual">🔄 Atualizar</button>
+      <button class="btn sec" onclick="window.open('/tv.html','_blank')">📺 Abrir tela da TV</button>
+      <button class="btn perigo" id="tLimparTudo">Limpar tudo</button>`;
+    $("tAtual").onclick = render;
+
+    $("tChamar").onclick = async () => {
+      if (await tentar(() => api("/tv/chamar", { method: "POST", body: { paciente: $("tPac").value, localTipo: $("tTipo").value, localNumero: $("tNum").value } }), "Paciente chamado")) render();
+    };
+    if ($("tLimparCh")) $("tLimparCh").onclick = async () => { if (await tentar(() => api("/tv/limpar-chamada", { method: "POST", body: {} }), "Chamada limpa")) render(); };
+    $("tLimparTudo").onclick = async () => {
+      if (!(await confirmar("Limpar TV", "Remove a chamada atual e todo o histórico.", "Limpar"))) return;
+      if (await tentar(() => api("/tv/limpar-historico", { method: "POST", body: {} }), "TV limpa")) render();
+    };
+    $("conteudo").querySelectorAll(".lista-simples button").forEach((b) => b.onclick = async () => {
+      if (await tentar(() => api(`/tv/historico/${b.dataset.id}`, { method: "DELETE" }), "Item removido")) render();
+    });
+  };
+  await render();
+  timerAuto = setInterval(() => { if (!document.querySelector(".overlay") && document.activeElement.tagName !== "INPUT") render().catch(() => {}); }, 15000);
+}
+
+// ============================================================
+//  BANCO DE DADOS
+// ============================================================
+async function telaBanco() {
+  const r = await api("/resumo");
+  const t = r.totais;
+  $("conteudo").innerHTML = `
+    <div class="card"><h3>Resumo do banco</h3>
+      <div class="lista-simples">
+        <div><span>Pacientes</span><b>${t.pacientes}</b></div>
+        <div><span>Triagens</span><b>${t.triagens}</b></div>
+        <div><span>Consultas</span><b>${t.consultas}</b></div>
+        <div><span>Usuários</span><b>${t.usuarios}</b></div>
+        <div><span>Medicações no catálogo</span><b>${t.medicacoes}</b></div>
+      </div>
+    </div>
+    <div class="grid g-2">
+      <div class="card"><h3>💾 Backup</h3>
+        <p style="color:var(--suave);font-size:14px">Baixa um arquivo .json com todos os dados do sistema (as senhas ficam criptografadas).</p>
+        <button class="btn" id="bBackup">⬇ Baixar backup</button>
+      </div>
+      <div class="card"><h3>♻️ Restaurar backup</h3>
+        <p style="color:var(--suave);font-size:14px">Substitui todos os dados atuais pelos do arquivo escolhido.</p>
+        <input type="file" id="bArq" accept=".json,application/json">
+        <button class="btn perigo" style="margin-top:10px" id="bRestaurar">Restaurar</button>
+      </div>
+    </div>
+    <div class="card" style="border-color:#fecaca"><h3 style="color:var(--vermelho)">⚠️ Zona de perigo</h3>
+      <p style="color:var(--suave);font-size:14px">Apaga pacientes, triagens, consultas e chamadas da TV. Usuários, medicações e configurações são mantidos.</p>
+      <button class="btn perigo" id="bReset">Resetar dados operacionais</button>
+    </div>`;
+
+  $("bBackup").onclick = () => tentar(async () => {
+    const resp = await fetch(API + "/backup", { headers: { "x-admin-token": token } });
+    if (!resp.ok) throw new Error("Falha ao gerar backup");
+    baixarArquivo(`sentinela-backup-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.json`, await resp.text(), "application/json");
+  }, "Backup baixado");
+
+  $("bRestaurar").onclick = async () => {
+    const arq = $("bArq").files[0];
+    if (!arq) return toast("Escolha um arquivo de backup", true);
+    let dados;
+    try { dados = JSON.parse(await arq.text()); } catch { return toast("Arquivo JSON inválido", true); }
+    if (!(await confirmarDigitando("Restaurar backup", "Todos os dados atuais serão substituídos.", "CONFIRMAR"))) return;
+    if (await tentar(() => api("/restaurar", { method: "POST", body: { dados, confirmar: "CONFIRMAR" } }), "Backup restaurado")) ir("banco");
+  };
+
+  $("bReset").onclick = async () => {
+    if (!(await confirmarDigitando("Resetar dados operacionais", "Pacientes, triagens, consultas e TV serão apagados definitivamente.", "RESETAR"))) return;
+    if (await tentar(() => api("/resetar", { method: "POST", body: { confirmar: "RESETAR" } }), "Dados resetados")) ir("banco");
+  };
+}
+
+// ============================================================
+//  AUDITORIA
+// ============================================================
+async function telaAuditoria() {
+  const dados = await api("/colecao/auditoria");
+  $("conteudo").innerHTML = dados.length
+    ? `<div class="tabela-wrap"><table><thead><tr><th>Data</th><th>Administrador</th><th>Ação</th><th>Detalhe</th></tr></thead><tbody>
+        ${dados.map((a) => `<tr><td>${dt(a.data)}</td><td>${esc(a.usuario)}</td><td>${esc(a.acao)}</td><td>${esc(a.detalhe)}</td></tr>`).join("")}
+       </tbody></table></div>`
+    : `<div class="vazio">Nenhuma ação registrada.</div>`;
+  $("acoesTopo").innerHTML = `
+    <button class="btn sec" onclick="ir('auditoria')">🔄 Atualizar</button>
+    <button class="btn perigo" id="aLimpar">Limpar log</button>`;
+  $("aLimpar").onclick = async () => {
+    if (!(await confirmarDigitando("Limpar auditoria", "Todo o histórico de ações será apagado.", "CONFIRMAR"))) return;
+    if (await tentar(() => api("/colecao/auditoria/limpar", { method: "POST", body: { confirmar: "CONFIRMAR" } }), "Log apagado")) ir("auditoria");
+  };
+}
+
+// ============================================================
+//  CONFIGURAÇÕES
+// ============================================================
+async function telaConfig() {
+  const c = await api("/config");
+  $("conteudo").innerHTML = `
+    <div class="card" style="max-width:520px"><h3>Configurações gerais</h3>
+      <label style="display:block;font-size:13px;color:var(--suave)">Nome do sistema
+        <input id="cNome" class="busca" style="width:100%;margin-top:4px" value="${esc(c.nomeSistema)}"></label>
+      <label style="display:block;font-size:13px;color:var(--suave);margin-top:12px">Quantidade de chamadas guardadas no histórico da TV (1–50)
+        <input id="cMax" type="number" min="1" max="50" class="busca" style="width:100%;margin-top:4px" value="${esc(c.tvHistoricoMax)}"></label>
+      <button class="btn" style="margin-top:16px" id="cSalvar">Salvar</button>
+    </div>
+    <div class="aviso">Para trocar a senha de um administrador, vá em <b>Usuários → Editar</b> e preencha o campo de nova senha.</div>`;
+  $("cSalvar").onclick = async () => {
+    if (await tentar(() => api("/config", { method: "PUT", body: { nomeSistema: $("cNome").value, tvHistoricoMax: Number($("cMax").value) } }), "Configurações salvas")) {
+      $("nomeSistema").textContent = $("cNome").value;
+    }
+  };
+}
+
+// ============================================================
+//  ROTEADOR DE TELAS
+// ============================================================
+
+// ============================================================
+//  OPERAÇÃO AO VIVO
+// ============================================================
+const PESO_RISCO = { vermelho: 0, amarelo: 1, verde: 2 };
+const minutosDesde = (iso) => (iso ? Math.max(0, Math.round((Date.now() - new Date(iso)) / 60000)) : 0);
+const tempoTxt = (m) => (m < 60 ? `${m} min` : `${Math.floor(m / 60)}h${String(m % 60).padStart(2, "0")}`);
+
+async function telaLive() {
+  const render = async () => {
+    const [pac, tri, tv] = await Promise.all([api("/colecao/pacientes"), api("/colecao/triagens"), api("/tv")]);
+    const filaTriagem = pac.filter((p) => p.status === "triagem").reverse();
+    const filaMedico = tri.filter((t) => !t.status || t.status === "aguardando_medico")
+      .sort((a, b) => (PESO_RISCO[a.risco] ?? 3) - (PESO_RISCO[b.risco] ?? 3) || new Date(a.createdAt) - new Date(b.createdAt));
+    const criticos = filaMedico.filter((t) => t.risco === "vermelho").length;
+    const espera = filaMedico.length ? Math.round(filaMedico.reduce((s, t) => s + minutosDesde(t.createdAt), 0) / filaMedico.length) : 0;
+    const stat = (n, l) => `<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`;
+    const sel = `<select class="tvLocal"><option>GUICHÊ</option><option selected>CONSULTÓRIO</option><option>TRIAGEM</option></select>`;
+
+    $("conteudo").innerHTML = `
+      <div class="grid g-stats" style="margin-bottom:18px">
+        ${stat(filaTriagem.length, "Aguardando triagem")}${stat(filaMedico.length, "Aguardando médico")}
+        ${stat(criticos, "Casos vermelhos")}${stat(tempoTxt(espera), "Espera média (médico)")}
+      </div>
+      <div class="grid g-2">
+        <div class="card"><h3>🩺 Fila da triagem</h3>
+          ${filaTriagem.length ? filaTriagem.map((p) => `<div class="rowfila"><span><b>${esc(p.nome)}</b><br><small style="color:var(--suave)">${esc(p.tipo || "—")} • há ${tempoTxt(minutosDesde(p.createdAt))}</small></span>
+            <button class="btn ok peq" data-chamar="${esc(p.nome)}" data-tipo="TRIAGEM">📣 Chamar</button></div>`).join("")
+            : `<div class="vazio">Ninguém aguardando</div>`}
+        </div>
+        <div class="card"><h3>👨‍⚕️ Fila do médico <small style="font-weight:400;color:var(--suave)">(por prioridade)</small></h3>
+          ${filaMedico.length ? filaMedico.map((t) => `<div class="rowfila"><span><span class="badge ${esc(t.risco)}">${esc(t.risco)}</span> <b>${esc(t.nome)}</b><br>
+            <small style="color:var(--suave)">${esc(t.sintoma || t.sintomas || "—")} • há ${tempoTxt(minutosDesde(t.createdAt))}</small></span>
+            <button class="btn ok peq" data-chamar="${esc(t.nome)}" data-tipo="CONSULTÓRIO">📣 Chamar</button></div>`).join("")
+            : `<div class="vazio">Fila vazia</div>`}
+        </div>
+        <div class="card"><h3>📺 Na TV agora</h3>
+          ${tv.chamada ? `<div class="tv-atual"><div class="p">${esc(tv.chamada.paciente)}</div><div class="l">${esc(tv.chamada.localTipo)} ${esc(tv.chamada.localNumero)} • ${esc(tv.chamada.hora)}</div></div>` : `<div class="vazio">Nenhuma chamada</div>`}
+        </div>
+      </div>`;
+
+    $("conteudo").querySelectorAll("[data-chamar]").forEach((b) => b.onclick = async () => {
+      const num = prompt(`Número do ${b.dataset.tipo.toLowerCase()} para chamar ${b.dataset.chamar}:`, "01");
+      if (num === null) return;
+      if (await tentar(() => api("/tv/chamar", { method: "POST", body: { paciente: b.dataset.chamar, localTipo: b.dataset.tipo, localNumero: num } }), "Paciente chamado na TV")) render();
+    });
+  };
+  await render();
+  $("acoesTopo").innerHTML = `<span class="vivo"><i></i>atualiza a cada 10 s</span><button class="btn sec" onclick="ir('live')">🔄</button>`;
+  timerAuto = setInterval(() => { if (!document.querySelector(".overlay")) render().catch(() => {}); }, 10000);
+}
+
+// ============================================================
+//  RELATÓRIOS
+// ============================================================
+async function telaRelatorios() {
+  const [pac, tri, con, mov] = await Promise.all([api("/colecao/pacientes"), api("/colecao/triagens"), api("/colecao/consultas"), api("/colecao/almox_movimentos")]);
+  let periodo = 30;
+
+  const contar = (arr, fn) => arr.reduce((a, x) => { const k = fn(x) || "—"; a[k] = (a[k] || 0) + 1; return a; }, {});
+  const top = (obj, n = 6) => Object.fromEntries(Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, n));
+
+  const desenhar = () => {
+    const corte = periodo ? Date.now() - periodo * 86400000 : 0;
+    const no = (x) => !corte || new Date(x.createdAt).getTime() >= corte;
+    const P = pac.filter(no), T = tri.filter(no), C = con.filter(no), M = mov.filter(no);
+    const dias = [];
+    for (let i = Math.min(periodo || 30, 30) - 1; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); dias.push(d.toISOString().slice(0, 10)); }
+    const serie = dias.map((dia) => ({ dia, total: P.filter((x) => (x.createdAt || "").slice(0, 10) === dia).length }));
+    const saidas = M.filter((m) => m.tipo === "saida").reduce((s, m) => s + m.quantidade, 0);
+    const stat = (n, l) => `<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`;
+
+    $("rel").innerHTML = `
+      <div class="grid g-stats" style="margin-bottom:18px">
+        ${stat(P.length, "Pacientes")}${stat(T.length, "Triagens")}${stat(C.length, "Consultas")}
+        ${stat(T.filter((t) => t.risco === "vermelho").length, "Casos vermelhos")}${stat(saidas, "Itens consumidos (almox.)")}
+      </div>
+      <div class="grid g-2">
+        <div class="card"><h3>Pacientes por dia ${periodo > 30 || !periodo ? "(últimos 30 dias)" : ""}</h3>${colunasDias(serie)}</div>
+        <div class="card"><h3>Classificação de risco</h3>${barras(contar(T, (t) => t.risco), { verde: "verde", amarelo: "amarelo", vermelho: "vermelho" })}</div>
+        <div class="card"><h3>Tipo de atendimento</h3>${barras(contar(P, (p) => p.tipo))}</div>
+        <div class="card"><h3>Diagnósticos mais comuns</h3>${barras(top(contar(C, (c) => (c.diagnostico || "").trim())))}</div>
+        <div class="card"><h3>Medicações mais prescritas</h3>${barras(top(contar(C, (c) => c.medicacao)))}</div>
+        <div class="card"><h3>Itens mais consumidos no almoxarifado</h3>${barras(top(M.filter((m) => m.tipo === "saida").reduce((a, m) => { a[m.itemNome] = (a[m.itemNome] || 0) + m.quantidade; return a; }, {})))}</div>
+      </div>`;
+  };
+
+  $("conteudo").innerHTML = `<div id="rel"></div>`;
+  $("acoesTopo").innerHTML = `
+    <select id="rPer" class="busca"><option value="7">Últimos 7 dias</option><option value="30" selected>Últimos 30 dias</option><option value="90">Últimos 90 dias</option><option value="0">Todo o período</option></select>
+    <button class="btn" onclick="window.print()">🖨️ Imprimir / PDF</button>`;
+  $("rPer").onchange = (e) => { periodo = Number(e.target.value); desenhar(); };
+  desenhar();
+}
+
+// ============================================================
+//  EXTRAS: tema, contadores animados, busca rápida (Ctrl+K)
+// ============================================================
+function aplicarTema(t) {
+  document.documentElement.dataset.tema = t;
+  try { localStorage.setItem("adm_tema", t); } catch (_) {}
+  const b = $("temaBtn"); if (b) b.textContent = t === "escuro" ? "☀️ Tema claro" : "🌙 Tema escuro";
+}
+let temaSalvo = "claro";
+try { temaSalvo = localStorage.getItem("adm_tema") || "claro"; } catch (_) {}
+aplicarTema(temaSalvo);
+$("temaBtn").onclick = () => aplicarTema(document.documentElement.dataset.tema === "escuro" ? "claro" : "escuro");
+
+// contadores sobem de 0 até o valor quando aparecem
+new MutationObserver(() => {
+  document.querySelectorAll("#conteudo .stat .n:not([data-ok])").forEach((el) => {
+    el.dataset.ok = 1;
+    const alvo = el.textContent.trim();
+    if (!/^\d+$/.test(alvo)) return;
+    const fim = Number(alvo), t0 = performance.now();
+    const passo = (t) => {
+      const k = Math.min(1, (t - t0) / 700);
+      el.textContent = Math.round(fim * (1 - Math.pow(1 - k, 3)));
+      if (k < 1) requestAnimationFrame(passo);
+    };
+    requestAnimationFrame(passo);
+  });
+}).observe($("conteudo"), { childList: true, subtree: true });
+
+function abrirPaleta() {
+  const acoes = [
+    ...MENU.map(([id, ic, nome]) => ({ rot: `${ic} Ir para ${nome.replace("• ", "")}`, fn: () => ir(id) })),
+    { rot: "🔁 Nova movimentação de estoque", fn: () => abrirMovimento(null, () => telaAtual.startsWith("almox") && ir(telaAtual)) },
+    { rot: "🌓 Alternar tema", fn: () => $("temaBtn").click() },
+    { rot: "🚪 Sair", fn: () => sair() }
+  ];
+  let filtro = acoes, sel = 0;
+  const ov = abrirModal(`<input id="cmdIn" placeholder="Digite para buscar uma tela ou ação…" autocomplete="off"><div id="cmdLista"></div>`);
+  const box = ov.firstElementChild; box.className = "cmdk";
+  const lista = ov.querySelector("#cmdLista"), inp = ov.querySelector("#cmdIn");
+  const pintar = () => {
+    lista.innerHTML = filtro.slice(0, 9).map((a, i) => `<div class="it ${i === sel ? "sel" : ""}" data-i="${i}">${esc(a.rot)}</div>`).join("") || `<div class="it">Nada encontrado</div>`;
+    lista.querySelectorAll(".it[data-i]").forEach((el) => el.onclick = () => { ov.remove(); filtro[el.dataset.i].fn(); });
+  };
+  inp.oninput = () => { filtro = acoes.filter((a) => a.rot.toLowerCase().includes(inp.value.toLowerCase())); sel = 0; pintar(); };
+  inp.onkeydown = (e) => {
+    if (e.key === "ArrowDown") { sel = Math.min(sel + 1, Math.min(filtro.length, 9) - 1); pintar(); e.preventDefault(); }
+    else if (e.key === "ArrowUp") { sel = Math.max(sel - 1, 0); pintar(); e.preventDefault(); }
+    else if (e.key === "Enter" && filtro[sel]) { ov.remove(); filtro[sel].fn(); }
+    else if (e.key === "Escape") ov.remove();
+  };
+  pintar(); inp.focus();
+}
+document.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k" && token) { e.preventDefault(); abrirPaleta(); }
+});
+
+async function telaLeitos() {
+  const ROT = { livre: "Livre", ocupado: "Ocupado", limpeza: "Limpeza", manutencao: "Manutenção" };
+  const campos = [
+    { k: "numero", l: "Número / identificação", ph: "Ex.: 101-A" },
+    { k: "setor", l: "Setor", t: "select", o: ["Enfermaria", "UTI", "Pronto-socorro", "Isolamento", "Pediatria", "Maternidade", "Observação"] },
+    { k: "status", l: "Situação", t: "select", o: Object.entries(ROT) },
+    { k: "paciente", l: "Paciente (se ocupado)" }
+  ];
+  const render = async () => {
+    const lista = (await api("/colecao/leitos")).sort((a, b) => String(a.numero).localeCompare(String(b.numero), undefined, { numeric: true }));
+    const c = (st) => lista.filter((l) => l.status === st).length;
+    const taxa = lista.length ? Math.round((c("ocupado") / lista.length) * 100) : 0;
+    $("conteudo").innerHTML = `
+      <div class="fin">${mini(lista.length, "Leitos")}${mini(c("livre"), "Livres", "pos")}${mini(c("ocupado"), "Ocupados", "neg")}${mini(c("limpeza") + c("manutencao"), "Limpeza / manutenção")}${mini(taxa + "%", "Taxa de ocupação")}</div>
+      <div class="card"><div class="barra" style="height:12px"><i class="${taxa > 85 ? "vermelho" : taxa > 60 ? "amarelo" : "verde"}" style="width:${taxa}%"></i></div></div>
+      ${lista.length ? `<div class="leitos">${lista.map((l, i) => `
+        <div class="leito ${esc(l.status)}" data-id="${l.id}" style="animation-delay:${Math.min(i, 20) * 25}ms">
+          <span class="st">${ROT[l.status] || esc(l.status)}</span><b>${esc(l.numero)}</b><small>${esc(l.setor)}</small>
+          <small>${l.paciente ? "👤 " + esc(l.paciente) : "&nbsp;"}</small>
+          <button class="del" data-del="${l.id}" title="Excluir">🗑️</button></div>`).join("")}</div>`
+        : `<div class="vazio">Nenhum leito cadastrado. Clique em “＋ Novo leito”.</div>`}`;
+    $("conteudo").querySelectorAll(".leito").forEach((el) => el.onclick = (e) => {
+      const l = lista.find((x) => String(x.id) === el.dataset.id);
+      if (e.target.dataset.del) {
+        return confirmar("Excluir leito", `Excluir o leito ${l.numero}?`, "Excluir").then(async (ok) => {
+          if (ok && await tentar(() => api(`/colecao/leitos/${l.id}`, { method: "DELETE" }), "Leito excluído")) render();
+        });
+      }
+      formulario(`Leito ${l.numero}`, campos, l, async (d) => {
+        if (d.status !== "ocupado") d.paciente = "";
+        const r = await tentar(() => api(`/colecao/leitos/${l.id}`, { method: "PUT", body: d }), "Leito atualizado");
+        if (r) render();
+        return !!r;
+      });
+    });
+  };
+  await render();
+  $("acoesTopo").innerHTML = `<button class="btn" id="lNovo">＋ Novo leito</button><button class="btn sec" onclick="ir('leitos')">🔄</button>`;
+  $("lNovo").onclick = () => formulario("Novo leito", campos, { status: "livre", setor: "Enfermaria" }, async (d) => {
+    const r = await tentar(() => api("/colecao/leitos", { method: "POST", body: d }), "Leito criado");
+    if (r) render();
+    return !!r;
+  });
+}
+
+const TELAS = {
+  dashboard: telaDashboard,
+  live: telaLive,
+  relatorios: telaRelatorios,
+  agendamentos: () => telaColecao("agendamentos"),
+  leitos: telaLeitos,
+  financeiro: () => telaColecao("financeiro"),
+  equipe: () => telaColecao("equipe"),
+  contas: () => telaColecao("contas"),
+  exames: () => telaColecao("exames"),
+  avisos: () => telaColecao("avisos"),
+  pacientes: () => telaColecao("pacientes"),
+  triagens: () => telaColecao("triagens"),
+  consultas: () => telaColecao("consultas"),
+  medicacoes: () => telaColecao("medicacoes"),
+  almox: telaAlmox,
+  almox_itens: () => telaColecao("almox_itens"),
+  almox_movimentos: () => telaColecao("almox_movimentos"),
+  almox_fornecedores: () => telaColecao("almox_fornecedores"),
+  usuarios: () => telaColecao("usuarios"),
+  tv: telaTv,
+  banco: telaBanco,
+  auditoria: telaAuditoria,
+  config: telaConfig
+};
+
+if (token) iniciar();
+</script>
+<script src="/js/admin-hotkey.js"></script>
+</body>
+</html>

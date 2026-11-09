@@ -1,0 +1,80 @@
+/* ===== Projeto Sentinela • tema base (usado junto com Tailwind) ===== */
+:root{--b:#2563eb;--tx:#0f172a;--mut:#64748b;--bd:#e2e8f0}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--tx);background:#eef2f9;min-height:100vh;position:relative;overflow-x:hidden}
+body::before,body::after{content:"";position:fixed;z-index:-1;border-radius:50%;filter:blur(90px);opacity:.45;animation:float 14s ease-in-out infinite}
+body::before{width:420px;height:420px;background:#60a5fa;top:-120px;left:-100px}
+body::after{width:380px;height:380px;background:#5eead4;bottom:-120px;right:-80px;animation-delay:-7s}
+@keyframes float{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,30px) scale(1.12)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shimmer{to{background-position:-200% 0}}
+@keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+@keyframes pulseRed{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.5)}50%{box-shadow:0 0 0 10px rgba(220,38,38,0)}}
+
+/* container e tipografia */
+.container{max-width:960px;margin:24px auto;padding:28px;background:rgba(255,255,255,.82);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.8);border-radius:22px;box-shadow:0 20px 50px -22px rgba(15,23,42,.3);animation:fadeUp .6s both}
+.glass{background:rgba(255,255,255,.82);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.8);border-radius:22px;box-shadow:0 20px 50px -22px rgba(15,23,42,.3);animation:fadeUp .6s both}
+h2,h3{letter-spacing:-.02em}
+
+/* formulários */
+label.lbl{display:block;font-size:12px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;margin-top:6px}
+input,select,textarea{width:100%;padding:12px 14px;margin:6px 0 10px;border:1.5px solid var(--bd);border-radius:12px;background:#fff;font:inherit;color:var(--tx);transition:border-color .2s,box-shadow .2s}
+input:focus,select:focus,textarea:focus{outline:0;border-color:var(--b);box-shadow:0 0 0 4px rgba(37,99,235,.15)}
+textarea{min-height:90px;resize:vertical}
+input[type=file]{padding:9px;background:#f8fafc;border-style:dashed}
+hr{border:0;height:1px;background:linear-gradient(90deg,transparent,var(--bd),transparent);margin:22px 0}
+
+/* botões */
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:11px 18px;font-weight:600;color:#fff;background:linear-gradient(135deg,#3b82f6,#1d4ed8);box-shadow:0 8px 18px -8px rgba(37,99,235,.7);transition:transform .15s,box-shadow .2s,filter .2s}
+button:hover{transform:translateY(-2px);filter:brightness(1.08)}
+button:active{transform:scale(.97)}
+button:disabled{opacity:.6;pointer-events:none}
+.btn-tv{background:linear-gradient(135deg,#22c55e,#15803d);box-shadow:0 8px 18px -8px rgba(22,163,74,.7);padding:9px 14px;font-size:14px}
+.btn-abrir-tv{background:linear-gradient(135deg,#06b6d4,#0e7490);box-shadow:0 8px 18px -8px rgba(8,145,178,.7)}
+.btn-alta{background:linear-gradient(135deg,#ef4444,#b91c1c);box-shadow:0 8px 18px -8px rgba(220,38,38,.7)}
+.btn-cancelar{background:#64748b;box-shadow:none}
+.btn-confirmar-alta{background:linear-gradient(135deg,#22c55e,#15803d)}
+.btn-ghost{background:#fff;color:#334155;border:1.5px solid var(--bd);box-shadow:none}
+
+/* cartões e listas */
+.card{background:#fff;border:1px solid var(--bd);border-left:5px solid var(--b);border-radius:16px;padding:16px 18px;margin:12px 0;box-shadow:0 6px 18px -12px rgba(15,23,42,.35);animation:fadeUp .5s both;transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-3px);box-shadow:0 14px 28px -14px rgba(15,23,42,.4)}
+.card:nth-child(2){animation-delay:.06s}.card:nth-child(3){animation-delay:.12s}.card:nth-child(4){animation-delay:.18s}.card:nth-child(n+5){animation-delay:.24s}
+.card h3{margin:0 0 8px;font-size:17px}
+.card p{margin:4px 0;color:#334155;font-size:14px}
+.pacientes-fila{background:transparent}
+.fila-item{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1px solid var(--bd);border-radius:14px;padding:12px 14px;margin-bottom:10px;animation:slideIn .4s both;transition:transform .2s,box-shadow .2s}
+.fila-item:hover{transform:translateX(4px);box-shadow:0 10px 20px -14px rgba(15,23,42,.5)}
+.fila-item small{color:var(--mut)}
+.consultorio-input{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:linear-gradient(135deg,#eff6ff,#ecfeff);border:1px solid #bfdbfe;border-radius:14px;padding:12px 16px;margin-bottom:18px}
+.consultorio-input input{width:72px;margin:0;text-align:center;font-size:18px;font-weight:800}
+
+/* classificação de risco */
+span.verde,span.amarelo,span.vermelho{display:inline-block;padding:3px 12px;border-radius:999px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+span.verde{background:#dcfce7;color:#166534}
+span.amarelo{background:#fef9c3;color:#854d0e}
+span.vermelho{background:#fee2e2;color:#991b1b;animation:pulseRed 1.6s infinite}
+#resultado:not(:empty){padding:14px 18px;border-radius:14px;font-weight:800;text-align:center;margin:8px 0 14px;animation:pop .35s both;letter-spacing:.03em}
+#resultado.verde{background:#dcfce7;color:#166534}
+#resultado.amarelo{background:#fef9c3;color:#854d0e}
+#resultado.vermelho{background:#fee2e2;color:#991b1b}
+
+/* modal de alta */
+.modal-alta{display:none;position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:16px}
+.modal-conteudo{background:#fff;width:100%;max-width:720px;max-height:92vh;overflow-y:auto;border-radius:22px;padding:28px;box-shadow:0 30px 70px rgba(0,0,0,.4);animation:pop .3s both}
+.modal-conteudo h2{margin:0 0 14px;padding-bottom:12px;border-bottom:1px solid var(--bd)}
+.campo-alta label{display:block;font-size:12px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.linha-alta{display:flex;gap:14px}.linha-alta .campo-alta{flex:1}
+.botoes-alta{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+@media(max-width:600px){.linha-alta{flex-direction:column;gap:0}.container{margin:12px;padding:18px}}
+
+/* utilidades */
+.skel{background:linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 37%,#e2e8f0 63%);background-size:200% 100%;animation:shimmer 1.3s infinite;border-radius:12px;height:70px;margin:10px 0}
+.spinner{width:18px;height:18px;border:3px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle}
+#toasts{position:fixed;top:78px;right:16px;z-index:99999;display:flex;flex-direction:column;gap:10px;max-width:92vw}
+.toast{background:#0f172a;color:#fff;padding:13px 18px;border-radius:14px;box-shadow:0 14px 30px -10px rgba(0,0,0,.5);font-size:14px;font-weight:500;border-left:5px solid #3b82f6;animation:slideIn .35s both;max-width:360px;white-space:pre-line}
+.toast.ok{border-color:#22c55e}.toast.err{border-color:#ef4444}.toast.warn{border-color:#f59e0b}
+.toast.sai{opacity:0;transform:translateX(30px);transition:.3s}

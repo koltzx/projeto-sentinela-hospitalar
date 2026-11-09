@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="/js/ui.js"></script>
+<link rel="stylesheet" href="css/style.css">
+<title>Atendimento</title>
+</head>
+<body>
+<header id="topbar" data-icon="🧾" data-title="Atendimento" data-sub="Recepção e cadastro de pacientes" data-tv="1"></header>
+
+<main class="max-w-5xl mx-auto p-4 grid lg:grid-cols-5 gap-6 mt-4">
+  <section class="glass p-7 lg:col-span-3">
+    <h2 class="text-xl font-extrabold">Novo paciente</h2>
+    <p class="text-slate-500 text-sm mb-4">Após o cadastro o paciente segue automaticamente para a triagem.</p>
+    <label class="lbl">Nome completo</label>
+    <input id="nome" placeholder="Ex.: Maria da Silva">
+    <label class="lbl">CPF</label>
+    <input id="cpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14">
+    <label class="lbl">Tipo de atendimento</label>
+    <div class="grid grid-cols-2 gap-3 my-2" id="tipos">
+      <button type="button" data-v="Convenio" class="tipo py-3 rounded-xl border-2 font-semibold transition">🏢 Convênio</button>
+      <button type="button" data-v="Particular" class="tipo py-3 rounded-xl border-2 font-semibold transition">💳 Particular</button>
+    </div>
+    <label class="lbl mt-3">Foto (opcional)</label>
+    <div class="flex items-center gap-4">
+      <input type="file" id="foto" accept="image/*" class="flex-1">
+      <img id="prev" class="hidden w-14 h-14 rounded-full object-cover ring-4 ring-brand-100" alt="">
+    </div>
+    <button id="btn" class="w-full mt-4 py-3.5">Cadastrar e enviar para triagem</button>
+  </section>
+
+  <aside class="glass p-6 lg:col-span-2">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-extrabold text-lg">Cadastros recentes</h3>
+      <button class="btn-ghost !py-1.5 !px-3 text-sm" onclick="carregar()">🔄</button>
+    </div>
+    <div id="lista"><div class="skel"></div><div class="skel"></div></div>
+  </aside>
+</main>
+
+<script>
+let tipo = "Convenio";
+const $ = (id) => document.getElementById(id);
+const STATUS = { triagem: ["bg-amber-100 text-amber-800", "Aguardando triagem"], em_atendimento: ["bg-blue-100 text-blue-800", "Em atendimento"], atendido: ["bg-green-100 text-green-800", "Atendido"] };
+
+function marcar() {
+  document.querySelectorAll(".tipo").forEach((b) => {
+    const on = b.dataset.v === tipo;
+    b.className = "tipo py-3 rounded-xl border-2 font-semibold transition " +
+      (on ? "border-brand-600 bg-brand-50 text-brand-700 shadow" : "border-slate-200 bg-white text-slate-500 hover:border-slate-300");
+    b.style.boxShadow = b.style.transform = "";
+  });
+}
+document.querySelectorAll(".tipo").forEach((b) => (b.onclick = () => { tipo = b.dataset.v; marcar(); }));
+marcar();
+
+$("cpf").addEventListener("input", (e) => {
+  const d = e.target.value.replace(/\D/g, "").slice(0, 11);
+  e.target.value = d.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+});
+$("foto").addEventListener("change", (e) => {
+  const f = e.target.files[0], p = $("prev");
+  if (!f) return p.classList.add("hidden");
+  p.src = URL.createObjectURL(f); p.classList.remove("hidden");
+});
+
+async function cadastrar() {
+  const nome = $("nome").value.trim();
+  if (!nome) return alert("⚠️ Informe o nome do paciente.");
+  const btn = $("btn"); btn.disabled = true;
+  try {
+    const r = await fetch("/atendimento", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nome, cpf: $("cpf").value, tipo }) });
+    if (!r.ok) throw new Error();
+    alert("✅ " + nome + " enviado para a triagem.");
+    $("nome").value = $("cpf").value = ""; $("foto").value = ""; $("prev").classList.add("hidden");
+    $("nome").focus(); carregar();
+  } catch { alert("❌ Erro ao cadastrar paciente."); }
+  btn.disabled = false;
+}
+$("btn").onclick = cadastrar;
+$("nome").addEventListener("keydown", (e) => e.key === "Enter" && cadastrar());
+
+async function carregar() {
+  try {
+    const pacientes = (await (await fetch("/pacientes")).json()).slice(-8).reverse();
+    $("lista").innerHTML = pacientes.length ? pacientes.map((p) => {
+      const s = STATUS[p.status] || ["bg-slate-100 text-slate-700", p.status || "—"];
+      return `<div class="fila-item"><div class="min-w-0"><div class="font-semibold truncate">${esc(p.nome)}</div>
+        <small>${esc(p.tipo || "—")} • ${p.createdAt ? new Date(p.createdAt).toLocaleTimeString("pt-BR", {hour:"2-digit",minute:"2-digit"}) : ""}</small></div>
+        <span class="text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${s[0]}">${s[1]}</span></div>`;
+    }).join("") : '<p class="text-center text-slate-400 py-6">Nenhum cadastro ainda.</p>';
+  } catch { $("lista").innerHTML = '<p class="text-red-600">Erro ao carregar.</p>'; }
+}
+carregar(); setInterval(carregar, 15000);
+</script>
+<script src="/js/admin-hotkey.js"></script>
+</body>
+</html>

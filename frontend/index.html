@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="/js/ui.js"></script>
+<title>Entrar • Sistema Hospitalar</title>
+<style>
+  body{font-family:Inter,system-ui,sans-serif}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  @keyframes float{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,25px)}}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+  @keyframes beat{to{stroke-dashoffset:0}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .up{animation:fadeUp .7s both}.shake{animation:shake .45s}
+  .ecg{stroke-dasharray:600;stroke-dashoffset:600;animation:beat 2.6s linear infinite}
+</style>
+</head>
+<body class="min-h-screen grid lg:grid-cols-2 bg-slate-50">
+  <section class="relative hidden lg:flex flex-col justify-between p-12 text-white overflow-hidden bg-gradient-to-br from-slate-900 via-brand-900 to-brand-700">
+    <div class="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-cyan-400/30 blur-3xl" style="animation:float 12s infinite"></div>
+    <div class="absolute -bottom-24 -right-16 w-96 h-96 rounded-full bg-blue-400/30 blur-3xl" style="animation:float 15s infinite reverse"></div>
+    <div class="relative flex items-center gap-3 text-xl font-bold up"><span class="grid place-items-center w-11 h-11 rounded-xl bg-white/15 backdrop-blur">🛡️</span>Projeto Sentinela</div>
+    <div class="relative up" style="animation-delay:.15s">
+      <h1 class="text-4xl xl:text-5xl font-extrabold leading-tight">Gestão hospitalar<br>rápida, segura e<br><span class="text-cyan-300">em tempo real.</span></h1>
+      <svg viewBox="0 0 400 60" class="mt-8 w-full max-w-md"><polyline class="ecg" fill="none" stroke="#67e8f9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="0,30 80,30 100,30 115,8 130,52 145,30 220,30 240,30 255,12 270,48 285,30 400,30"/></svg>
+      <ul class="mt-8 space-y-3 text-blue-100">
+        <li class="flex gap-3">✅ Triagem com classificação de risco</li>
+        <li class="flex gap-3">✅ Chamadas em painel de TV</li>
+        <li class="flex gap-3">✅ Prontuário, prescrição e almoxarifado</li>
+      </ul>
+    </div>
+    <p class="relative text-sm text-blue-200/80">© Projeto Sentinela</p>
+  </section>
+
+  <main class="flex items-center justify-center p-6">
+    <form id="f" class="up w-full max-w-md bg-white rounded-3xl shadow-xl shadow-slate-200 border border-slate-100 p-8 sm:p-10" style="animation-delay:.1s">
+      <div class="lg:hidden text-3xl mb-2">🏥</div>
+      <h2 class="text-2xl font-extrabold text-slate-900">Bem-vindo de volta</h2>
+      <p class="text-slate-500 mt-1 mb-7">Entre com seu usuário para acessar o sistema.</p>
+
+      <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Usuário</label>
+      <input id="usuario" autocomplete="username" autofocus placeholder="seu.usuario" class="mt-1 mb-4 w-full rounded-xl border-2 border-slate-200 px-4 py-3 focus:border-brand-600 focus:ring-4 focus:ring-brand-100 outline-none transition">
+
+      <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Senha</label>
+      <div class="relative mt-1">
+        <input id="senha" type="password" autocomplete="current-password" placeholder="••••••••" class="w-full rounded-xl border-2 border-slate-200 px-4 py-3 pr-12 focus:border-brand-600 focus:ring-4 focus:ring-brand-100 outline-none transition">
+        <button type="button" id="olho" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700" aria-label="Mostrar senha">👁️</button>
+      </div>
+
+      <p id="erro" class="min-h-[22px] mt-3 text-sm font-medium text-red-600"></p>
+      <button id="btn" class="mt-2 w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-brand-600 to-brand-700 shadow-lg shadow-brand-600/30 hover:-translate-y-0.5 hover:shadow-xl active:scale-[.98] transition disabled:opacity-60">Entrar</button>
+      <a href="paciente.html" class="mt-5 flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-brand-700 bg-brand-50 border border-brand-100 hover:bg-brand-100 hover:-translate-y-0.5 transition">🧑 Sou paciente — criar conta ou acessar</a>
+      <p class="mt-6 text-center text-xs text-slate-400">Administradores: <kbd class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-600">Ctrl</kbd> + <kbd class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-600">Shift</kbd> + <kbd class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-600">5</kbd></p>
+    </form>
+  </main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const DESTINOS = { admin: "app.html", triagem: "app.html", medico: "app.html", atendimento: "app.html", farmacia: "app.html" };
+$("olho").onclick = () => { const s = $("senha"); s.type = s.type === "password" ? "text" : "password"; };
+
+$("f").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = $("btn"), erro = $("erro");
+  erro.textContent = "";
+  btn.disabled = true;
+  btn.innerHTML = '<span style="display:inline-block;width:18px;height:18px;border:3px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle"></span>';
+  try {
+    const r = await fetch("/login", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ usuario: $("usuario").value, senha: $("senha").value }) });
+    const data = await r.json();
+    if (!r.ok || data.erro) throw new Error(data.erro || "Login inválido");
+    const destino = DESTINOS[data.tipo];
+    if (!destino) throw new Error("Perfil sem página associada");
+    sessionStorage.setItem("sent_user", JSON.stringify(data));
+    location.href = destino;
+  } catch (err) {
+    erro.textContent = err.message;
+    const f = $("f"); f.classList.remove("shake"); void f.offsetWidth; f.classList.add("shake");
+    btn.disabled = false; btn.textContent = "Entrar";
+  }
+});
+</script>
+<script src="/js/admin-hotkey.js"></script>
+</body>
+</html>

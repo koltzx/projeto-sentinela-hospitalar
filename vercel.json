@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "builds": [{ "src": "api/index.js", "use": "@vercel/node" }],
+  "routes": [
+    { "src": "/login", "dest": "api/index.js" },
+    { "src": "/atendimento", "dest": "api/index.js" },
+    { "src": "/pacientes", "dest": "api/index.js" },
+    { "src": "/triagem", "dest": "api/index.js" },
+    { "src": "/triagens", "dest": "api/index.js" },
+    { "src": "/tv/chamar", "dest": "api/index.js" },
+    { "src": "/tv/chamada", "dest": "api/index.js" },
+    { "src": "/lista-medicacoes", "dest": "api/index.js" },
+    { "src": "/consulta", "dest": "api/index.js" },
+    { "src": "/medicacoes", "dest": "api/index.js" },
+    { "src": "/api/status", "dest": "api/index.js" },
+    { "src": "/admin-api/(.*)", "dest": "api/index.js" },
+    { "src": "/(.*)", "dest": "/frontend/$1" }
+  ]
+}

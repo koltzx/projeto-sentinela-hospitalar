@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<title>Painel de Chamadas</title>
+<style>
+  body{font-family:Inter,system-ui,sans-serif;background:#050b1a}
+  @keyframes drift{0%,100%{transform:translate(0,0)}50%{transform:translate(5vw,4vh)}}
+  @keyframes ring{0%{transform:scale(.85);opacity:.7}100%{transform:scale(1.7);opacity:0}}
+  @keyframes enter{0%{opacity:0;transform:scale(.8) translateY(30px)}60%{transform:scale(1.04)}100%{opacity:1;transform:none}}
+  @keyframes glow{0%,100%{text-shadow:0 0 20px rgba(103,232,249,.3)}50%{text-shadow:0 0 60px rgba(103,232,249,.9)}}
+  @keyframes slide{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+  @keyframes marquee{from{transform:translateX(100%)}to{transform:translateX(-100%)}}
+  .enter{animation:enter .8s cubic-bezier(.2,.9,.3,1.2) both}
+  .nome{animation:glow 2.4s infinite}
+  .ring{position:absolute;inset:0;border-radius:50%;border:.5vw solid #22d3ee;animation:ring 2s infinite}
+  .h-item{animation:slide .5s both}
+</style>
+</head>
+<body class="h-screen overflow-hidden text-white">
+<div class="fixed inset-0 -z-0 overflow-hidden">
+  <div class="absolute -top-[20vh] -left-[10vw] w-[50vw] h-[50vw] rounded-full bg-blue-600/25 blur-[120px]" style="animation:drift 18s infinite"></div>
+  <div class="absolute -bottom-[25vh] -right-[10vw] w-[45vw] h-[45vw] rounded-full bg-cyan-500/20 blur-[120px]" style="animation:drift 22s infinite reverse"></div>
+</div>
+
+<div class="relative z-10 h-full flex flex-col gap-[1.6vw] p-[2vw]">
+  <header class="flex items-center justify-between">
+    <div class="flex items-center gap-[1vw]">
+      <div class="grid place-items-center w-[4vw] h-[4vw] rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-400 text-[2.2vw] shadow-lg">🏥</div>
+      <div><div class="text-[2vw] font-extrabold leading-none">Sistema Hospitalar</div><div class="text-[1.1vw] text-blue-200/70 mt-1">Painel de chamadas</div></div>
+    </div>
+    <div class="flex items-center gap-[1.5vw]">
+      <button id="som" class="px-[1.2vw] py-[.6vw] rounded-full bg-white/10 border border-white/20 text-[1vw] font-semibold hover:bg-white/20 transition">🔇 Ativar som</button>
+      <div class="text-right"><div id="hora" class="text-[2.6vw] font-extrabold tabular-nums leading-none">--:--</div><div id="data" class="text-[1vw] text-blue-200/70 mt-1"></div></div>
+    </div>
+  </header>
+
+  <main class="flex-1 min-h-0 grid grid-cols-[2.1fr_1fr] gap-[1.6vw]">
+    <section id="principal" class="rounded-[2vw] bg-white/[.06] backdrop-blur-xl border border-white/10 flex flex-col items-center justify-center text-center p-[2vw] shadow-2xl">
+      <div class="text-[1.6vw] tracking-[.5em] text-cyan-300 font-bold">CHAMANDO PACIENTE</div>
+      <div id="paciente" class="nome mt-[2vw] text-[7vw] leading-[1.05] font-black break-words max-w-full">AGUARDANDO…</div>
+      <div class="mt-[3vw] flex items-center gap-[2.5vw]">
+        <div class="text-right"><div id="tipo" class="text-[2.4vw] font-extrabold tracking-widest text-blue-200">GUICHÊ</div><div id="horaChamada" class="text-[1.2vw] text-blue-200/60"></div></div>
+        <div class="relative w-[11vw] h-[11vw]"><span class="ring"></span><span class="ring" style="animation-delay:1s"></span>
+          <div id="numero" class="relative w-full h-full rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 grid place-items-center text-[6vw] font-black shadow-[0_0_5vw_rgba(34,211,238,.5)]">--</div></div>
+      </div>
+    </section>
+
+    <aside class="rounded-[2vw] bg-white/[.06] backdrop-blur-xl border border-white/10 p-[1.8vw] flex flex-col shadow-2xl">
+      <div class="text-[1.4vw] font-extrabold tracking-widest text-cyan-300 mb-[1vw]">ÚLTIMAS CHAMADAS</div>
+      <ul id="hist" class="flex-1 space-y-[.8vw] overflow-hidden"></ul>
+    </aside>
+  </main>
+
+  <footer class="overflow-hidden rounded-full bg-white/[.06] border border-white/10 py-[.7vw]">
+    <div id="ticker" class="whitespace-nowrap text-[1.2vw] text-blue-100/80" style="animation:marquee 28s linear infinite">
+      Aguarde ser chamado • Mantenha seus documentos em mãos • Atendimento prioritário conforme classificação de risco • Em caso de piora, informe a recepção imediatamente
+    </div>
+  </footer>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let ultimoId = null, somOn = false;
+
+$("som").onclick = () => {
+  somOn = !somOn;
+  $("som").textContent = somOn ? "🔊 Som ativado" : "🔇 Ativar som";
+  if (somOn) { gongo(); }
+};
+
+function gongo() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [[880, 0], [660, 0.35]].forEach(([f, t]) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.frequency.value = f; o.type = "sine"; o.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(0.0001, ctx.currentTime + t);
+      g.gain.exponentialRampToValueAtTime(0.4, ctx.currentTime + t + 0.05);
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + t + 0.9);
+      o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 1);
+    });
+  } catch (_) {}
+}
+function falar(c) {
+  if (!("speechSynthesis" in window)) return;
+  const u = new SpeechSynthesisUtterance(`${c.paciente}. Favor comparecer ao ${String(c.localTipo || "guichê").toLowerCase()} ${c.localNumero}.`);
+  u.lang = "pt-BR"; u.rate = 0.9;
+  speechSynthesis.cancel(); speechSynthesis.speak(u);
+}
+
+function relogio() {
+  const d = new Date();
+  $("hora").textContent = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  $("data").textContent = d.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
+}
+relogio(); setInterval(relogio, 1000);
+
+async function atualizar() {
+  try {
+    const { chamada, historico = [] } = await (await fetch("/tv/chamada")).json();
+    if (chamada) {
+      $("paciente").textContent = chamada.paciente || "AGUARDANDO…";
+      $("tipo").textContent = chamada.localTipo || "GUICHÊ";
+      $("numero").textContent = chamada.localNumero || "--";
+      $("horaChamada").textContent = chamada.hora ? "às " + chamada.hora : "";
+      if (chamada.id !== ultimoId) {
+        const nova = ultimoId !== null;
+        ultimoId = chamada.id;
+        const s = $("principal"); s.classList.remove("enter"); void s.offsetWidth; s.classList.add("enter");
+        if (nova && somOn) { gongo(); setTimeout(() => falar(chamada), 1100); }
+      }
+    }
+    $("hist").innerHTML = historico.slice(1, 6).map((h, i) => `
+      <li class="h-item flex items-center gap-[1vw] rounded-2xl bg-white/[.07] px-[1.2vw] py-[.9vw]" style="animation-delay:${i * 80}ms">
+        <span class="grid place-items-center min-w-[3.2vw] h-[3.2vw] rounded-xl bg-blue-500/30 text-cyan-200 text-[1.5vw] font-extrabold">${String(h.localNumero ?? "").replace(/[<>&]/g, "")}</span>
+        <div class="min-w-0"><div class="text-[1.5vw] font-bold truncate">${String(h.paciente ?? "").replace(/[<>&]/g, "")}</div>
+        <div class="text-[1vw] text-blue-200/60">${String(h.localTipo ?? "").replace(/[<>&]/g, "")} • ${String(h.hora ?? "").replace(/[<>&]/g, "")}</div></div>
+      </li>`).join("") || '<li class="text-blue-200/50 text-[1.2vw]">Sem chamadas anteriores</li>';
+  } catch (_) {}
+}
+atualizar(); setInterval(atualizar, 2000);
+
+async function avisos() {
+  try {
+    const lista = await (await fetch("/avisos-ativos")).json();
+    if (!lista.length) return;
+    const icone = { urgente: "🚨", importante: "⚠️", normal: "ℹ️" };
+    const txt = lista.map((a) => `${icone[a.prioridade] || "ℹ️"} ${a.titulo}${a.mensagem ? ": " + a.mensagem : ""}`).join("   •   ");
+    const t = $("ticker");
+    if (t.textContent !== txt) { t.textContent = txt; t.style.animationDuration = Math.max(20, txt.length * 0.2) + "s"; }
+  } catch (_) {}
+}
+avisos(); setInterval(avisos, 30000);
+</script>
+<script src="/js/admin-hotkey.js"></script>
+</body>
+</html>
